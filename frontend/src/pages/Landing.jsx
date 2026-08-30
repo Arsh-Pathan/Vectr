@@ -4,7 +4,7 @@ import Navbar from '../components/layout/Navbar';
 import GoogleLoginButton from '../components/auth/GoogleLoginButton';
 import DecryptedText from '../components/animations/DecryptedText';
 import PixelTransition from '../components/animations/PixelTransition';
-import SoftAurora from '../components/backgrounds/SoftAurora';
+import AntigravitySwarm from '../components/backgrounds/AntigravitySwarm';
 import { Compass, TrendingUp, Sparkles, Code, Target, ArrowRight } from 'lucide-react';
 
 export default function Landing() {
@@ -16,32 +16,26 @@ export default function Landing() {
       
       <main className="flex-1 w-full">
         {/* --- 1. HERO SECTION --- */}
-        <section className="relative pt-24 pb-16 w-full border-b border-gray-100 overflow-hidden">
-          {/* Soft Aurora Background */}
-          <div className="absolute inset-0 z-0 opacity-40 mix-blend-multiply">
-            <SoftAurora 
-              lightMode={true}
-              color1="#4285F4" 
-              color2="#d2e3fc"
-              mouseInfluence={0.5}
-              speed={0.4}
-            />
-          </div>
+        <section className="relative pt-32 pb-24 w-full overflow-hidden flex flex-col items-center justify-center min-h-[90vh]">
+          {/* Antigravity Swarm Background */}
+          <AntigravitySwarm />
 
-          <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 tracking-tight leading-tight mb-6">
-              Find Your Next{' '}
+          <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center mt-[-10vh]">
+            {/* Google Antigravity style typography: massive, tight tracking, geometric */}
+            <h1 className="text-6xl sm:text-7xl lg:text-8xl font-medium text-[#202124] tracking-[-0.04em] leading-[1.05] mb-8">
+              Experience liftoff with<br className="hidden sm:block" />
+              {' '}
               <DecryptedText
                 text="Open Source"
                 animateOn="inViewHover"
                 speed={20}
                 maxIterations={30}
                 characters="ABCDEF0123456789"
-                className="text-gray-900"
-                encryptedClassName="text-gray-400 font-mono"
+                className="text-[#202124]"
+                encryptedClassName="text-gray-400 font-mono tracking-normal"
               />
               <br className="hidden md:block" />
-              Contribution,{' '}
+              Contributions,{' '}
               <span className="text-google-blue inline-block">
                 <DecryptedText
                   text="Intelligently."
@@ -50,25 +44,28 @@ export default function Landing() {
                   maxIterations={40}
                   characters="!@#$%^&*()_+{}[]|:;<>?"
                   className="text-google-blue"
-                  encryptedClassName="text-google-blue/50 font-mono"
+                  encryptedClassName="text-google-blue/50 font-mono tracking-normal"
                 />
               </span>
             </h1>
-            <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto">
-              Vectr analyzes your GitHub profile to match you with the perfect issues. Level up your skills with AI-guided assistance, without ever getting the answer handed to you.
-            </p>
             
-            <div className="flex flex-col items-center space-y-4 mb-16">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12">
               <GoogleLoginButton 
                 onSuccess={() => navigate('/auth')} 
                 text="Get Started" 
-                className="text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all"
+                className="text-base font-medium px-6 py-3 rounded-full bg-[#202124] text-white hover:bg-[#3c4043] hover:shadow-none shadow-none transition-all flex items-center justify-center"
               />
-              <p className="text-sm text-gray-400 font-medium">Free forever for open source contributors.</p>
+              <button 
+                onClick={() => document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })}
+                className="text-base font-medium px-6 py-3 rounded-full bg-[#f1f3f4] text-[#202124] hover:bg-[#e8eaed] transition-all border border-gray-200"
+              >
+                Explore features
+              </button>
             </div>
+          </div>
 
-            {/* Hero App Mockup Placeholder */}
-            <div className="w-full max-w-5xl mx-auto bg-white/80 backdrop-blur-md rounded-2xl border border-gray-200 shadow-2xl overflow-hidden relative">
+          {/* Hero App Mockup Placeholder */}
+          <div className="w-full max-w-5xl mx-auto mt-16 bg-white/80 backdrop-blur-md rounded-2xl border border-gray-200 shadow-2xl overflow-hidden relative z-10">
               <div className="h-10 bg-white/50 border-b border-gray-200 flex items-center px-4 gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-400"></div>
                 <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
