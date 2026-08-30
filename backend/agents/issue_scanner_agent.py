@@ -32,21 +32,23 @@ class IssueAnalysisResult(BaseModel):
     suggested_prerequisites: List[str] = Field(description="Prerequisite knowledge or setup needed")
 
 
+# ADK root_agent exposed for ADK Web UI / Runner
+root_agent = Agent(
+    name="issue_scanner_agent",
+    description="Scans GitHub repositories and categorizes open issues by difficulty, skills, and complexity",
+    model=GEMINI_MODEL,
+    instruction="You are the Issue Scanner Agent for Vectr. Accurately categorize GitHub issues by difficulty (beginner/moderate/advanced), difficulty_score (1-100), required skills, and estimated time.",
+    output_schema=IssueAnalysisResult,
+)
+
+
 class IssueScannerAgent:
     """Agent 2: Google ADK Issue Scanner Agent."""
 
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         self.api_key = api_key or GEMINI_API_KEY
         self.model_name = model or GEMINI_MODEL
-        
-        # Instantiate Google ADK Agent
-        self.adk_agent = Agent(
-            name="issue_scanner_agent",
-            description="Scans GitHub repositories and categorizes open issues by difficulty, skills, and complexity",
-            model=self.model_name,
-            instruction="You are the Issue Scanner Agent for Vectr. Accurately categorize GitHub issues by difficulty (beginner/moderate/advanced), difficulty_score (1-100), required skills, and estimated time.",
-            output_schema=IssueAnalysisResult,
-        )
+        self.adk_agent = root_agent
         self.client = genai.Client(api_key=self.api_key)
 
     def scan_issue(

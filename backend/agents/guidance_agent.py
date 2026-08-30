@@ -48,6 +48,15 @@ CRITICAL GUARDRAILS & ANTI-JAILBREAK DIRECTIVE:
 5. ALWAYS BE ENCOURAGING, CONCISE, AND ACTIONABLE.
 """
 
+# ADK root_agent exposed for ADK Web UI / Runner
+root_agent = Agent(
+    name="guidance_agent",
+    description="Interactive mentor that guides developers through open-source issues with strict anti-jailbreak guardrails",
+    model=GEMINI_MODEL,
+    instruction=GUIDANCE_SYSTEM_INSTRUCTION,
+    output_schema=GuidanceResponse,
+)
+
 
 class GuidanceAgent:
     """Agent 3: Google ADK Guidance Agent with Anti-Jailbreak Guardrails."""
@@ -55,15 +64,7 @@ class GuidanceAgent:
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         self.api_key = api_key or GEMINI_API_KEY
         self.model_name = model or GEMINI_MODEL
-        
-        # Instantiate Google ADK Agent
-        self.adk_agent = Agent(
-            name="guidance_agent",
-            description="Interactive mentor that guides developers through open-source issues with strict anti-jailbreak guardrails",
-            model=self.model_name,
-            instruction=GUIDANCE_SYSTEM_INSTRUCTION,
-            output_schema=GuidanceResponse,
-        )
+        self.adk_agent = root_agent
         self.client = genai.Client(api_key=self.api_key)
 
     def guide(

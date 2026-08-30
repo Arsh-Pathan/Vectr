@@ -88,21 +88,23 @@ class ProfileAnalysisResult(BaseModel):
     recommended_focus: List[str] = Field(description="Recommended issue tags/types to start contributing")
 
 
+# ADK root_agent exposed for ADK Web UI / Runner
+root_agent = Agent(
+    name="profile_agent",
+    description="Analyzes developer GitHub metadata and calculates skill score and proficiency",
+    model=GEMINI_MODEL,
+    instruction="You are the Profile Analysis Agent for Vectr. Analyze a developer's GitHub profile data and calculate their skill assessment accurately.",
+    output_schema=ProfileAnalysisResult,
+)
+
+
 class ProfileAgent:
     """Agent 1: Google ADK Profile Analysis Agent."""
 
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         self.api_key = api_key or GEMINI_API_KEY
         self.model_name = model or GEMINI_MODEL
-        
-        # Instantiate Google ADK Agent
-        self.adk_agent = Agent(
-            name="profile_agent",
-            description="Analyzes developer GitHub metadata and calculates skill score and proficiency",
-            model=self.model_name,
-            instruction="You are the Profile Analysis Agent for Vectr. Analyze a developer's GitHub profile data and calculate their skill assessment accurately.",
-            output_schema=ProfileAnalysisResult,
-        )
+        self.adk_agent = root_agent
         self.client = genai.Client(api_key=self.api_key)
 
     def calculate_seed_points(
