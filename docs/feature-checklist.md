@@ -30,9 +30,9 @@
 | F1 | Vite + React + Tailwind setup | ✅ | Project scaffold |
 | F2 | Routing & Auth Context | ✅ | Token management |
 | F3 | Common components | ✅ | Button, Card, Loader, Navbar |
-| F4 | Landing page | ⬜ | Hero, features, CTA |
-| F5 | Google/GitHub OAuth flow (UI) | ⬜ | Sign-in buttons + callbacks |
-| F6 | Language selector | ⬜ | Multi-select + proficiency |
+| F4 | Landing page | ✅ | Hero, features, CTA |
+| F5 | Google/GitHub OAuth flow (UI) | ✅ | Sign-in buttons + callbacks |
+| F6 | Language selector | ✅ | Multi-select + proficiency |
 | F7 | Dashboard page | ⬜ | Level card, matched issues, stats |
 | F8 | Issue detail page & Chat | ⬜ | Split view: info + guidance + Chat |
 | F9 | Google-themed design system | ✅ | Colors, fonts, shadows, spacing |
