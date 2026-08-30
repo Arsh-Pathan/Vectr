@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import DecryptedText from '../components/animations/DecryptedText';
 import PixelTransition from '../components/animations/PixelTransition';
+import GlowingCard from '../components/animations/GlowingCard';
 import { Compass, TrendingUp, Sparkles, Code, Target, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -29,27 +30,11 @@ export default function Landing() {
                 <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 tracking-tight leading-tight mb-6">
                   Experience liftoff with<br className="hidden sm:block" />
                   {' '}
-                  <DecryptedText
-                    text="Open Source"
-                    animateOn="inViewHover"
-                    speed={20}
-                    maxIterations={30}
-                    characters="ABCDEF0123456789"
-                    className="text-[#202124]"
-                    encryptedClassName="text-gray-400 font-mono tracking-normal"
-                  />
+                  Open Source
                   <br className="hidden md:block" />
                   Contributions,{' '}
                   <span className="text-google-blue inline-block">
-                    <DecryptedText
-                      text="Intelligently."
-                      animateOn="inViewHover"
-                      speed={20}
-                      maxIterations={40}
-                      characters="!@#$%^&*()_+{}[]|:;<>?"
-                      className="text-google-blue"
-                      encryptedClassName="text-google-blue/50 font-mono tracking-normal"
-                    />
+                    Intelligently.
                   </span>
                 </h1>
                 
@@ -75,7 +60,7 @@ export default function Landing() {
                 <img 
                   src="/logo.png" 
                   alt="Vectr - Intelligent Matching. Guided Contributions." 
-                  className="w-[400px] h-auto drop-shadow-2xl"
+                  className="w-[400px] h-[400px] object-cover rounded-full drop-shadow-2xl"
                 />
               </div>
             </div>
@@ -245,37 +230,43 @@ export default function Landing() {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Feature 1 */}
-              <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-google-blue mb-6">
-                  <Compass size={24} />
+              <GlowingCard>
+                <div className="bg-white p-8 h-full">
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-google-blue mb-6">
+                    <Compass size={24} />
+                  </div>
+                  <h4 className="text-xl font-bold text-gray-900 mb-3">Smart Match</h4>
+                  <p className="text-gray-600">
+                    Stop scrolling through GitHub. Get a curated feed of issues matched directly to your current proficiency and preferred languages.
+                  </p>
                 </div>
-                <h4 className="text-xl font-bold text-gray-900 mb-3">Smart Match</h4>
-                <p className="text-gray-600">
-                  Stop scrolling through GitHub. Get a curated feed of issues matched directly to your current proficiency and preferred languages.
-                </p>
-              </div>
+              </GlowingCard>
 
               {/* Feature 2 */}
-              <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-green-600 mb-6">
-                  <TrendingUp size={24} />
+              <GlowingCard>
+                <div className="bg-white p-8 h-full">
+                  <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-green-600 mb-6">
+                    <TrendingUp size={24} />
+                  </div>
+                  <h4 className="text-xl font-bold text-gray-900 mb-3">Level Up</h4>
+                  <p className="text-gray-600">
+                    Track your growth. Earn points for merged PRs, maintain daily contribution streaks, and unlock new tiers and badges.
+                  </p>
                 </div>
-                <h4 className="text-xl font-bold text-gray-900 mb-3">Level Up</h4>
-                <p className="text-gray-600">
-                  Track your growth. Earn points for merged PRs, maintain daily contribution streaks, and unlock new tiers and badges.
-                </p>
-              </div>
+              </GlowingCard>
 
               {/* Feature 3 */}
-              <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 rounded-xl bg-yellow-50 flex items-center justify-center text-yellow-600 mb-6">
-                  <Code size={24} />
+              <GlowingCard>
+                <div className="bg-white p-8 h-full">
+                  <div className="w-12 h-12 rounded-xl bg-yellow-50 flex items-center justify-center text-yellow-600 mb-6">
+                    <Code size={24} />
+                  </div>
+                  <h4 className="text-xl font-bold text-gray-900 mb-3">Daily Challenges</h4>
+                  <p className="text-gray-600">
+                    Form a habit with curated bite-sized issues meant to be solved in under an hour to keep your streak alive.
+                  </p>
                 </div>
-                <h4 className="text-xl font-bold text-gray-900 mb-3">Daily Challenges</h4>
-                <p className="text-gray-600">
-                  Build a habit. Every day, we hand-pick a specific challenge for you to solve to keep your problem-solving skills razor sharp.
-                </p>
-              </div>
+              </GlowingCard>
             </div>
           </div>
         </section>
