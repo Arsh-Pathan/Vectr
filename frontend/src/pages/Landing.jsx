@@ -19,8 +19,8 @@ export default function Landing() {
             Find Your Next{' '}
             <DecryptedText
               text="Open Source"
-              animateOn="view"
-              speed={60}
+              animateOn="inViewHover"
+              speed={100}
               maxIterations={12}
               characters="ABCDEF0123456789"
               className="text-gray-900"
@@ -28,11 +28,11 @@ export default function Landing() {
             />
             <br className="hidden md:block" />
             Contribution,{' '}
-            <span className="text-google-blue">
+            <span className="text-google-blue inline-block">
               <DecryptedText
                 text="Intelligently."
-                animateOn="hover"
-                speed={50}
+                animateOn="inViewHover"
+                speed={90}
                 maxIterations={20}
                 characters="!@#$%^&*()_+{}[]|:;<>?"
                 className="text-google-blue"
