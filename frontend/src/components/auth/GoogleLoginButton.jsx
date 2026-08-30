@@ -1,23 +1,32 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../config/api';
 
 export default function GoogleLoginButton({ onSuccess, text = "Sign in with Google", className = "" }) {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const handleLogin = async () => {
     try {
-      // Simulate OAuth flow (In reality, use @react-oauth/google or similar)
-      console.log('Simulating Google login...');
-      // Simulated delay
-      await new Promise(res => setTimeout(res, 1000));
-      
-      // We would exchange the token here:
-      // const response = await api.post('/auth/google', { token: 'mock_token' });
-      // const { access_token, user } = response.data;
-      // login(access_token);
-      
+      // NOTE: Full Google OAuth flow requires @react-oauth/google and a real Client ID.
+      // For now we exchange a test token — replace `mock_google_id_token` with the
+      // real credential string from the GoogleOAuth2 provider once Client ID is configured.
+      const idToken = 'mock_google_id_token';
+
+      const response = await api.post('/auth/google', { token: idToken });
+      const { access_token, user } = response.data;
+
+      // Persist token via AuthContext
+      login(access_token, user);
+
       if (onSuccess) {
-        onSuccess();
+        onSuccess(user);
       }
     } catch (error) {
-      console.error('Google login failed:', error);
+      const detail = error.response?.data?.detail || error.message;
+      console.error('Google login failed:', detail);
+      alert(`Login failed: ${detail}`);
     }
   };
 

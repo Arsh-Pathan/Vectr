@@ -1,30 +1,17 @@
 import React from 'react';
-import { Award, Star, Zap, Target, Flame, Trophy } from 'lucide-react';
-
-const BADGE_ICONS = {
-  default: Award,
-  streak: Flame,
-  speed: Zap,
-  accuracy: Target,
-  milestone: Trophy,
-  featured: Star,
-};
-
-const BADGE_COLORS = {
-  gold: 'bg-yellow-50 border-yellow-200 text-yellow-600',
-  silver: 'bg-gray-50 border-gray-200 text-gray-500',
-  bronze: 'bg-orange-50 border-orange-200 text-orange-500',
-  blue: 'bg-blue-50 border-blue-200 text-blue-600',
-};
 
 export default function BadgeShowcase({ badges = [] }) {
+  const earned = badges.filter(b => b.earned);
+  const locked = badges.filter(b => !b.earned);
+
   if (!badges.length) {
     return (
       <div>
         <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">Badges</h3>
-        <div className="text-center py-8 text-gray-400">
-          <Award size={40} className="mx-auto mb-2 opacity-30" />
-          <p className="text-sm">Complete issues to earn your first badge!</p>
+        <div className="flex flex-col items-center justify-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-center">
+          <div className="text-4xl mb-3 opacity-30">🏅</div>
+          <h4 className="font-bold text-gray-500 mb-1">No badges yet</h4>
+          <p className="text-xs text-gray-400 max-w-xs">Complete issues and maintain streaks to unlock your first badge!</p>
         </div>
       </div>
     );
@@ -32,22 +19,34 @@ export default function BadgeShowcase({ badges = [] }) {
 
   return (
     <div>
-      <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">Badges</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {badges.map((badge) => {
-          const Icon = BADGE_ICONS[badge.type] || BADGE_ICONS.default;
-          const colorClass = BADGE_COLORS[badge.color] || BADGE_COLORS.blue;
-          return (
-            <div
-              key={badge.id}
-              title={badge.description}
-              className={`flex flex-col items-center p-3 rounded-xl border ${colorClass} text-center hover:shadow-sm transition-shadow cursor-default`}
-            >
-              <Icon size={28} className="mb-2" />
-              <span className="text-xs font-bold">{badge.name}</span>
-            </div>
-          );
-        })}
+      <h3 className="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">
+        Badges <span className="text-google-blue font-normal normal-case">({earned.length}/{badges.length})</span>
+      </h3>
+
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+        {/* Earned badges first */}
+        {earned.map((badge) => (
+          <div
+            key={badge.id}
+            title={badge.description}
+            className="flex flex-col items-center p-3 rounded-xl border border-gray-100 bg-white hover:shadow-sm transition-shadow cursor-default text-center"
+          >
+            <span className="text-3xl mb-1.5">{badge.icon}</span>
+            <span className="text-xs font-semibold text-gray-800 leading-tight">{badge.name}</span>
+          </div>
+        ))}
+
+        {/* Locked badges — grayed out */}
+        {locked.map((badge) => (
+          <div
+            key={badge.id}
+            title={`Locked: ${badge.condition}`}
+            className="flex flex-col items-center p-3 rounded-xl border border-dashed border-gray-200 bg-gray-50 cursor-default text-center opacity-40"
+          >
+            <span className="text-3xl mb-1.5 grayscale">{badge.icon}</span>
+            <span className="text-xs font-semibold text-gray-400 leading-tight">{badge.name}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
