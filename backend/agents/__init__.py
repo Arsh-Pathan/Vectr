@@ -17,6 +17,9 @@ from agents.guidance_agent import (
     ChatMessage,
     root_agent as guidance_agent_root,
 )
+from agents.vectr_orchestrator import (
+    root_agent as vectr_orchestrator_root,
+)
 
 __all__ = [
     "ProfileAgent",
@@ -32,4 +35,5 @@ __all__ = [
     "GuidanceResponse",
     "ChatMessage",
     "guidance_agent_root",
+    "vectr_orchestrator_root",
 ]

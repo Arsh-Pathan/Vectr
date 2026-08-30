@@ -37,6 +37,67 @@ def fetch_issue_comments(repo_full_name: str, issue_number: int) -> str:
     return "No comments available."
 
 
+def fetch_repo_issues_tool(repo_full_name: str, max_issues: int = 15) -> str:
+    """ADK Tool: Fetches open issues from a GitHub repository for categorization."""
+    url = f"https://api.github.com/repos/{repo_full_name}/issues?state=open&per_page={min(max_issues, 30)}"
+    headers = {"Accept": "application/vnd.github+json", "User-Agent": "Vectr-Platform/1.0"}
+    try:
+        resp = httpx.get(url, headers=headers, timeout=10.0)
+        if resp.status_code != 200:
+            return f"Failed to fetch issues from {repo_full_name}: HTTP {resp.status_code}"
+        raw_issues = resp.json()
+        # Filter out pull requests
+        issues = [i for i in raw_issues if "pull_request" not in i]
+        if not issues:
+            return f"No open issues found in {repo_full_name}."
+
+        formatted = []
+        for iss in issues[:max_issues]:
+            labels = ", ".join([lbl.get("name", "") for lbl in iss.get("labels", [])])
+            body_preview = (iss.get("body") or "")[:300]
+            formatted.append(
+                f"Issue #{iss['number']}: {iss['title']}\n"
+                f"  Labels: {labels or 'none'}\n"
+                f"  Body: {body_preview}\n"
+            )
+        return f"Found {len(issues)} open issues in {repo_full_name}:\n\n" + "\n---\n".join(formatted)
+    except Exception as e:
+        return f"Error fetching issues from {repo_full_name}: {str(e)}"
+
+
+def embed_issues_tool(repo_full_name: str) -> str:
+    """ADK Tool: Generates vector embeddings for all issues in the database from a given repository."""
+    try:
+        # Import lazily to avoid circular imports
+        import sys
+        backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        if backend_dir not in sys.path:
+            sys.path.insert(0, backend_dir)
+        from database import SessionLocal
+        from services.vector_service import VectorService
+        from models import Issue
+
+        db = SessionLocal()
+        try:
+            issues = db.query(Issue).filter(Issue.repo_full_name == repo_full_name).all()
+            if not issues:
+                return f"No issues found in database for {repo_full_name}. Scan issues first."
+
+            embedded_count = 0
+            for issue in issues:
+                try:
+                    VectorService.embed_and_store(db, issue.id, issue.title, issue.description)
+                    embedded_count += 1
+                except Exception as e:
+                    continue
+
+            return f"Successfully embedded {embedded_count}/{len(issues)} issues from {repo_full_name}."
+        finally:
+            db.close()
+    except Exception as e:
+        return f"Error embedding issues: {str(e)}"
+
+
 class IssueAnalysisResult(BaseModel):
     """Structured output for open-source GitHub issue categorization."""
     issue_id: Optional[int] = Field(default=None, description="GitHub issue ID or number")
@@ -61,9 +122,9 @@ root_agent = Agent(
     name="issue_scanner_agent",
     description="Scans GitHub repositories and categorizes open issues by difficulty, skills, and complexity with tool execution",
     model=GEMINI_MODEL,
-    instruction="You are the Issue Scanner Agent for Vectr. Accurately categorize GitHub issues by difficulty (beginner/moderate/advanced), difficulty_score (1-100), required skills, and provide auditable reasoning signals.",
+    instruction="You are the Issue Scanner Agent for Vectr. Accurately categorize GitHub issues by difficulty (beginner/moderate/advanced), difficulty_score (1-100), required skills, and provide auditable reasoning signals. Use fetch_repo_issues_tool to retrieve issues from a repo, fetch_issue_comments for deeper analysis, and embed_issues_tool to generate vector embeddings after scanning.",
     output_schema=IssueAnalysisResult,
-    tools=[fetch_issue_comments],
+    tools=[fetch_issue_comments, fetch_repo_issues_tool, embed_issues_tool],
 )
 
 

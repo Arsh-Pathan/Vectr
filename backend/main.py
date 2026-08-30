@@ -124,6 +124,15 @@ async def lifespan(app: FastAPI):
     # Startup
     init_db()
     seed_initial_demo_data()
+    # Backfill vector embeddings for fresh/seeded issues
+    db = SessionLocal()
+    try:
+        from services.vector_service import VectorService
+        VectorService.bulk_embed_issues(db)
+    except Exception as e:
+        print(f"Startup vector embedding notice: {e}")
+    finally:
+        db.close()
     yield
     # Shutdown
 

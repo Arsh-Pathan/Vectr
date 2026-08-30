@@ -1,5 +1,6 @@
 import os
 import sys
+import httpx
 from typing import List, Optional
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
@@ -19,6 +20,47 @@ except ImportError:
 from google.adk import Agent
 from google import genai
 from google.genai import types
+
+
+def fetch_github_stats(username: str) -> str:
+    """ADK Tool: Fetches a developer's public GitHub profile stats (repos, languages, activity) for skill analysis."""
+    headers = {"Accept": "application/vnd.github+json", "User-Agent": "Vectr-Platform/1.0"}
+    try:
+        # Fetch user profile
+        profile_resp = httpx.get(f"https://api.github.com/users/{username}", headers=headers, timeout=8.0)
+        if profile_resp.status_code != 200:
+            return f"Could not fetch GitHub profile for '{username}': HTTP {profile_resp.status_code}"
+        profile = profile_resp.json()
+
+        # Fetch repos for language detection
+        repos_resp = httpx.get(
+            f"https://api.github.com/users/{username}/repos?per_page=30&sort=updated",
+            headers=headers, timeout=8.0,
+        )
+        repos = repos_resp.json() if repos_resp.status_code == 200 else []
+
+        languages = {}
+        sample_repos = []
+        for repo in repos[:30]:
+            sample_repos.append(repo.get("name", ""))
+            lang = repo.get("language")
+            if lang:
+                languages[lang] = languages.get(lang, 0) + 1
+
+        top_langs = sorted(languages.keys(), key=lambda l: languages[l], reverse=True)
+
+        return (
+            f"GitHub Profile for @{username}:\n"
+            f"- Name: {profile.get('name', 'N/A')}\n"
+            f"- Bio: {profile.get('bio', 'N/A')}\n"
+            f"- Public Repos: {profile.get('public_repos', 0)}\n"
+            f"- Followers: {profile.get('followers', 0)}\n"
+            f"- Account Created: {profile.get('created_at', 'N/A')}\n"
+            f"- Top Languages: {', '.join(top_langs[:8]) if top_langs else 'Unknown'}\n"
+            f"- Sample Repos: {', '.join(sample_repos[:5])}\n"
+        )
+    except Exception as e:
+        return f"Error fetching GitHub stats for '{username}': {str(e)}"
 
 
 def points_to_level(points: int) -> int:
@@ -93,8 +135,9 @@ root_agent = Agent(
     name="profile_agent",
     description="Analyzes developer GitHub metadata and calculates skill score and proficiency",
     model=GEMINI_MODEL,
-    instruction="You are the Profile Analysis Agent for Vectr. Analyze a developer's GitHub profile data and calculate their skill assessment accurately.",
+    instruction="You are the Profile Analysis Agent for Vectr. Analyze a developer's GitHub profile data and calculate their skill assessment accurately. Use the fetch_github_stats tool to retrieve live GitHub data when a username is provided.",
     output_schema=ProfileAnalysisResult,
+    tools=[fetch_github_stats],
 )
 
 

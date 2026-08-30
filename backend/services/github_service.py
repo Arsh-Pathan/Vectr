@@ -101,13 +101,57 @@ class GitHubService:
         return []
 
     @staticmethod
-    async def fetch_org_repositories(org_name: str, limit: int = 10) -> List[Dict[str, Any]]:
-        """Fetch public repositories for an Organization (Zero user PAT required)."""
+    async def fetch_user_orgs(token: str) -> List[Dict[str, Any]]:
+        """Fetch GitHub organizations for the authenticated user using their OAuth access token (Zero PAT required)."""
+        if token and token.startswith("mock_gh_token"):
+            return [
+                {
+                    "login": "freeCodeCamp",
+                    "id": 9892522,
+                    "avatar_url": "https://avatars.githubusercontent.com/u/9892522?v=4",
+                    "description": "Learn to code for free and contribute to open source.",
+                },
+                {
+                    "login": "EddieHubCommunity",
+                    "id": 66385736,
+                    "avatar_url": "https://avatars.githubusercontent.com/u/66385736?v=4",
+                    "description": "Open source community focused on welcoming first-time contributors.",
+                },
+            ]
+
+        headers = {
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "Vectr-Platform/1.0",
+        }
+        if token and not token.startswith("mock_"):
+            headers["Authorization"] = f"Bearer {token}"
+
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get("https://api.github.com/user/orgs", headers=headers, timeout=10.0)
+                if resp.status_code == 200:
+                    return resp.json()
+        except Exception:
+            pass
+        return []
+
+    @staticmethod
+    async def fetch_org_repositories(org_name: str, token: Optional[str] = None, limit: int = 10) -> List[Dict[str, Any]]:
+        """Fetch public repositories for an Organization using OAuth token if present (Zero PAT required)."""
+        if token and token.startswith("mock_gh_token"):
+            return [
+                {"name": "freeCodeCamp", "full_name": "freeCodeCamp/freeCodeCamp", "language": "JavaScript", "stargazers_count": 390000},
+                {"name": "BioDrop", "full_name": "EddieHubCommunity/BioDrop", "language": "JavaScript", "stargazers_count": 4500},
+            ]
+
         url = f"https://api.github.com/orgs/{org_name}/repos?type=public&per_page={limit}&sort=updated"
         headers = {
             "Accept": "application/vnd.github+json",
             "User-Agent": "Vectr-Platform/1.0",
         }
+        if token and not token.startswith("mock_"):
+            headers["Authorization"] = f"Bearer {token}"
+
         try:
             async with httpx.AsyncClient() as client:
                 resp = await client.get(url, headers=headers, timeout=10.0)
