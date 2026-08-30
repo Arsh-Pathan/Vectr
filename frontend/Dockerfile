@@ -12,11 +12,6 @@ ENV VITE_GITHUB_CLIENT_ID=$VITE_GITHUB_CLIENT_ID
 # and it hits the relative /api path so the local NGINX proxy catches it.
 ENV VITE_API_URL=/api
 
-# Explicitly write them to a .env file so Vite is absolutely forced to read them
-RUN echo "VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID" > .env.production
-RUN echo "VITE_GITHUB_CLIENT_ID=$VITE_GITHUB_CLIENT_ID" >> .env.production
-RUN echo "VITE_API_URL=/api" >> .env.production
-
 RUN npm run build
 
 # Production Stage
