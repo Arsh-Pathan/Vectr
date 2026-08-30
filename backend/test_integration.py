@@ -127,14 +127,20 @@ def test_full_pipeline():
     if issue.is_daily_challenge:
         user.daily_challenges_completed += 1
 
-    # Record contribution
-    contrib = Contribution(
-        user_id=user.id,
-        issue_id=issue.id,
-        pr_url="https://github.com/tiangolo/fastapi/pull/9999",
-        points_earned=earned_pts,
-    )
-    db.add(contrib)
+    # Record contribution idempotently
+    existing_contrib = db.query(Contribution).filter(
+        Contribution.user_id == user.id,
+        Contribution.issue_id == issue.id,
+    ).first()
+
+    if not existing_contrib:
+        contrib = Contribution(
+            user_id=user.id,
+            issue_id=issue.id,
+            pr_url="https://github.com/tiangolo/fastapi/pull/9999",
+            points_earned=earned_pts,
+        )
+        db.add(contrib)
     db.commit()
 
     new_badges = BadgeService.check_and_award_badges(db, user)
