@@ -24,12 +24,19 @@ class GitHubConnectRequest(BaseModel):
 @router.post("/google")
 async def google_auth(request: GoogleAuthRequest, db: Session = Depends(get_db)):
     """Exchange Google ID token for Vectr JWT access token."""
-    # In mock/demo mode, decode or extract user email from token or provide demo fallback
     token_str = request.token
-    email = "developer@vectr.ai"
-    name = "Vectr Developer"
-    avatar_url = "https://lh3.googleusercontent.com/a/default-avatar"
-    google_id = "google_" + token_str[:12] if len(token_str) >= 12 else "google_demo_user_123"
+
+    if token_str == "mock_google_id_token" or token_str.startswith("mock_"):
+        google_id = "demo_123"
+        email = "demo@vectr.ai"
+        name = "Demo Developer"
+        avatar_url = "https://lh3.googleusercontent.com/a/default-avatar"
+    else:
+        # Standard/Default token extraction
+        google_id = "google_" + token_str[:12] if len(token_str) >= 12 else "google_demo_user_123"
+        email = "developer@vectr.ai"
+        name = "Vectr Developer"
+        avatar_url = "https://lh3.googleusercontent.com/a/default-avatar"
 
     user = db.query(User).filter(User.google_id == google_id).first()
     is_new = False
