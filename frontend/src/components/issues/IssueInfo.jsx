@@ -78,7 +78,14 @@ export default function IssueInfo({ issue }) {
               <p className="mt-1">🚀 Level up! You are now Level {completionResult.new_level}.</p>
             )}
             {completionResult.new_badges?.map(b => (
-              <p key={b.id} className="mt-1">{b.icon} Badge unlocked: <strong>{b.name}</strong></p>
+              <div key={b.id} className="mt-2 flex items-center gap-2">
+                {b.icon_url ? (
+                  <img src={b.icon_url} alt={b.name} className="w-8 h-10 drop-shadow-sm" />
+                ) : (
+                  <span>{b.icon}</span>
+                )}
+                <span>Badge unlocked: <strong>{b.name}</strong></span>
+              </div>
             ))}
           </div>
         )}

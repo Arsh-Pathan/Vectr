@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="100" height="120">
+  <defs>
+    <linearGradient id="silver" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8e8f0"/>
+      <stop offset="50%" style="stop-color:#b8b8c8"/>
+      <stop offset="100%" style="stop-color:#888898"/>
+    </linearGradient>
+    <filter id="shadow5"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-opacity="0.4"/></filter>
+  </defs>
+  <path d="M50 8 L88 22 L88 58 Q88 88 50 112 Q12 88 12 58 L12 22 Z" fill="url(#silver)" stroke="#7070a0" stroke-width="2" filter="url(#shadow5)"/>
+  <!-- Inner border decoration -->
+  <path d="M50 16 L82 28 L82 56 Q82 82 50 104 Q18 82 18 56 L18 28 Z" fill="none" stroke="#c0c0d8" stroke-width="1.2"/>
+  <!-- Book icon -->
+  <rect x="30" y="45" width="40" height="30" rx="2" fill="#9898b8" stroke="#7070a0" stroke-width="1"/>
+  <path d="M50 45 L50 75" stroke="#7070a0" stroke-width="1.5"/>
+  <path d="M32 50 L48 50" stroke="white" stroke-width="1" opacity="0.6"/>
+  <path d="M32 56 L48 56" stroke="white" stroke-width="1" opacity="0.6"/>
+  <path d="M32 62 L48 62" stroke="white" stroke-width="1" opacity="0.6"/>
+  <path d="M52 50 L68 50" stroke="white" stroke-width="1" opacity="0.6"/>
+  <path d="M52 56 L68 56" stroke="white" stroke-width="1" opacity="0.6"/>
+  <path d="M52 62 L68 62" stroke="white" stroke-width="1" opacity="0.6"/>
+  <!-- Sun above book -->
+  <circle cx="50" cy="38" r="6" fill="#d0d0e8" stroke="#b0b0c8" stroke-width="1"/>
+  <path d="M50 28 L50 30 M60 32 L58.5 33.5 M64 42 L62 42 M60 52 L58.5 50.5 M50 56 L50 54 M40 52 L41.5 50.5 M36 42 L38 42 M40 32 L41.5 33.5" stroke="#b0b0c8" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Highlight -->
+  <path d="M50 10 L85 23 L85 38" stroke="white" stroke-width="2" fill="none" opacity="0.4"/>
+</svg>

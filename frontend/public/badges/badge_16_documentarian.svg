@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="100" height="120">
+  <defs>
+    <linearGradient id="teal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5eead4"/>
+      <stop offset="50%" style="stop-color:#0d9488"/>
+      <stop offset="100%" style="stop-color:#134e4a"/>
+    </linearGradient>
+    <filter id="s16"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-opacity="0.4"/></filter>
+  </defs>
+  <path d="M50 8 L88 22 L88 58 Q88 88 50 112 Q12 88 12 58 L12 22 Z" fill="url(#teal)" stroke="#134e4a" stroke-width="2" filter="url(#s16)"/>
+  <!-- Scroll/document -->
+  <rect x="33" y="35" width="36" height="48" rx="3" fill="#ccfbf1" stroke="#0d9488" stroke-width="1.5"/>
+  <rect x="29" y="35" width="8" height="48" rx="3" fill="#a7f3d0" stroke="#059669" stroke-width="1"/>
+  <rect x="64" y="35" width="8" height="48" rx="3" fill="#a7f3d0" stroke="#059669" stroke-width="1"/>
+  <!-- Writing lines on scroll -->
+  <line x1="40" y1="46" x2="62" y2="46" stroke="#0d9488" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="40" y1="53" x2="62" y2="53" stroke="#0d9488" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="40" y1="60" x2="62" y2="60" stroke="#0d9488" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="40" y1="67" x2="55" y2="67" stroke="#0d9488" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Quill pen -->
+  <path d="M62 40 Q70 30 75 25 Q72 35 68 40 Q72 38 75 42 Q68 42 65 48 Z" fill="#fef9c3" stroke="#ca8a04" stroke-width="0.8"/>
+  <line x1="65" y1="48" x2="58" y2="72" stroke="#ca8a04" stroke-width="1" stroke-linecap="round"/>
+  <!-- Highlight -->
+  <path d="M50 10 L85 23 L85 38" stroke="white" stroke-width="1.5" fill="none" opacity="0.3"/>
+</svg>

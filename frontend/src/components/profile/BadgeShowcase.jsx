@@ -31,7 +31,11 @@ export default function BadgeShowcase({ badges = [] }) {
             title={badge.description}
             className="flex flex-col items-center p-3 rounded-xl border border-gray-100 bg-white hover:shadow-sm transition-shadow cursor-default text-center"
           >
-            <span className="text-3xl mb-1.5">{badge.icon}</span>
+            {badge.icon_url ? (
+              <img src={badge.icon_url} alt={badge.name} className="w-16 h-20 mb-2 drop-shadow-sm" />
+            ) : (
+              <span className="text-3xl mb-1.5">{badge.icon}</span>
+            )}
             <span className="text-xs font-semibold text-gray-800 leading-tight">{badge.name}</span>
           </div>
         ))}
@@ -41,9 +45,13 @@ export default function BadgeShowcase({ badges = [] }) {
           <div
             key={badge.id}
             title={`Locked: ${badge.condition}`}
-            className="flex flex-col items-center p-3 rounded-xl border border-dashed border-gray-200 bg-gray-50 cursor-default text-center opacity-40"
+            className="flex flex-col items-center p-3 rounded-xl border border-dashed border-gray-200 bg-gray-50 cursor-default text-center opacity-40 grayscale"
           >
-            <span className="text-3xl mb-1.5 grayscale">{badge.icon}</span>
+            {badge.icon_url ? (
+              <img src={badge.icon_url} alt={badge.name} className="w-16 h-20 mb-2 drop-shadow-none" />
+            ) : (
+              <span className="text-3xl mb-1.5">{badge.icon}</span>
+            )}
             <span className="text-xs font-semibold text-gray-400 leading-tight">{badge.name}</span>
           </div>
         ))}
