@@ -175,6 +175,20 @@ Return a structured profile assessment with:
 - Recommended issue tags/focus areas for open source contributions.
 """
 
+        if not self.api_key or self.api_key == "mock_key":
+            # Mock Bypass for local UI integration testing without API keys
+            return ProfileAnalysisResult(
+                username=username,
+                calculated_points=points,
+                level=level,
+                tier=tier,
+                top_languages=languages[:3] if languages else ["JavaScript"],
+                language_breakdown=[LanguageProficiency(language=l, proficiency="intermediate") for l in (languages[:3] if languages else ["JavaScript"])],
+                strengths=["Frontend Development", "Hackathon Prototyping"],
+                summary="A fast-moving developer with strong fundamentals. Excellent at building MVPs.",
+                recommended_focus=["good first issue", "frontend", "react"]
+            )
+
         response = self.client.models.generate_content(
             model=self.adk_agent.model,
             contents=prompt,
