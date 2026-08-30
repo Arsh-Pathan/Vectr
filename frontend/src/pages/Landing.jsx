@@ -24,7 +24,7 @@ export default function Landing() {
         <div className="flex flex-col items-center space-y-4">
           <GoogleLoginButton 
             onSuccess={() => navigate('/auth')} 
-            text="Continue with Google" 
+            text="Get Started" 
             className="text-lg px-8 py-4 shadow-md"
           />
         </div>
