@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import GoogleLoginButton from '../components/auth/GoogleLoginButton';
+import DecryptedText from '../components/animations/DecryptedText';
 import { Compass, TrendingUp, Sparkles, Code, Target, ArrowRight } from 'lucide-react';
 
 export default function Landing() {
@@ -15,8 +16,29 @@ export default function Landing() {
         {/* --- 1. HERO SECTION --- */}
         <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
           <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 tracking-tight leading-tight mb-6">
-            Find Your Next Open Source<br className="hidden md:block" />
-            Contribution, <span className="text-google-blue">Intelligently.</span>
+            Find Your Next{' '}
+            <DecryptedText
+              text="Open Source"
+              animateOn="view"
+              speed={60}
+              maxIterations={12}
+              characters="ABCDEF0123456789"
+              className="text-gray-900"
+              encryptedClassName="text-gray-400 font-mono"
+            />
+            <br className="hidden md:block" />
+            Contribution,{' '}
+            <span className="text-google-blue">
+              <DecryptedText
+                text="Intelligently."
+                animateOn="hover"
+                speed={50}
+                maxIterations={20}
+                characters="!@#$%^&*()_+{}[]|:;<>?"
+                className="text-google-blue"
+                encryptedClassName="text-google-blue/50 font-mono"
+              />
+            </span>
           </h1>
           <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto">
             Vectr analyzes your GitHub profile to match you with the perfect issues. Level up your skills with AI-guided assistance, without ever getting the answer handed to you.
