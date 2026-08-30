@@ -1,9 +1,24 @@
+import os
+import sys
 from typing import List, Optional
 from pydantic import BaseModel, Field
+from dotenv import load_dotenv
+
+# Ensure backend directory is in sys.path
+backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
+load_dotenv()
+try:
+    from config import GEMINI_API_KEY, GEMINI_MODEL
+except ImportError:
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+
 from google.adk import Agent
 from google import genai
 from google.genai import types
-from config import GEMINI_API_KEY, GEMINI_MODEL
 
 
 def points_to_level(points: int) -> int:
@@ -73,21 +88,23 @@ class ProfileAnalysisResult(BaseModel):
     recommended_focus: List[str] = Field(description="Recommended issue tags/types to start contributing")
 
 
+# ADK root_agent exposed for ADK Web UI / Runner
+root_agent = Agent(
+    name="profile_agent",
+    description="Analyzes developer GitHub metadata and calculates skill score and proficiency",
+    model=GEMINI_MODEL,
+    instruction="You are the Profile Analysis Agent for Vectr. Analyze a developer's GitHub profile data and calculate their skill assessment accurately.",
+    output_schema=ProfileAnalysisResult,
+)
+
+
 class ProfileAgent:
     """Agent 1: Google ADK Profile Analysis Agent."""
 
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         self.api_key = api_key or GEMINI_API_KEY
         self.model_name = model or GEMINI_MODEL
-        
-        # Instantiate Google ADK Agent
-        self.adk_agent = Agent(
-            name="profile_agent",
-            description="Analyzes developer GitHub metadata and calculates skill score and proficiency",
-            model=self.model_name,
-            instruction="You are the Profile Analysis Agent for Vectr. Analyze a developer's GitHub profile data and calculate their skill assessment accurately.",
-            output_schema=ProfileAnalysisResult,
-        )
+        self.adk_agent = root_agent
         self.client = genai.Client(api_key=self.api_key)
 
     def calculate_seed_points(
