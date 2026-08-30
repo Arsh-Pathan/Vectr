@@ -10,23 +10,26 @@ export default function IssueInfo({ issue }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [prUrl, setPrUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [completed, setCompleted] = useState(false);
+  const [completionResult, setCompletionResult] = useState(null); // holds response from backend
 
   const handleSubmitPR = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // Simulate API call to mark as complete
-      // await api.post(`/issues/${issue.id}/complete`, { pr_url: prUrl });
-      await new Promise(res => setTimeout(res, 1000));
-      setCompleted(true);
+      // POST /api/issues/:id/complete
+      const res = await api.post(`/issues/${issue.id}/complete`, { pr_url: prUrl });
+      setCompletionResult(res.data);
       setIsModalOpen(false);
     } catch (error) {
-      console.error('Failed to submit PR', error);
+      const detail = error.response?.data?.detail || error.message;
+      console.error('Failed to submit PR:', detail);
+      alert(`Submission failed: ${detail}`);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const isCompleted = !!completionResult;
 
   return (
     <div className="flex flex-col h-full">
@@ -40,7 +43,7 @@ export default function IssueInfo({ issue }) {
         </div>
 
         <h1 className="text-2xl font-bold text-gray-900 mb-4">{issue.title}</h1>
-        
+
         <div className="prose prose-sm text-gray-700 mb-6 flex-1">
           <p>{issue.description}</p>
         </div>
@@ -67,19 +70,32 @@ export default function IssueInfo({ issue }) {
           </div>
         </div>
 
+        {/* Level-up / badge notification */}
+        {completionResult && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+            <p className="font-bold">🎉 +{completionResult.points_earned} points earned!</p>
+            {completionResult.level_changed && (
+              <p className="mt-1">🚀 Level up! You are now Level {completionResult.new_level}.</p>
+            )}
+            {completionResult.new_badges?.map(b => (
+              <p key={b.id} className="mt-1">{b.icon} Badge unlocked: <strong>{b.name}</strong></p>
+            ))}
+          </div>
+        )}
+
         <div className="flex items-center gap-4 mt-auto pt-6 border-t border-gray-100">
-          <a 
-            href={issue.url} 
-            target="_blank" 
+          <a
+            href={issue.url}
+            target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ExternalLink size={16} /> View on GitHub
           </a>
-          
+
           <div className="flex-1" />
-          
-          {completed ? (
+
+          {isCompleted ? (
             <span className="flex items-center gap-2 text-green-600 font-bold px-4 py-2 bg-green-50 rounded-full">
               <CheckCircle size={20} /> Completed
             </span>
@@ -95,12 +111,12 @@ export default function IssueInfo({ issue }) {
         <form onSubmit={handleSubmitPR}>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">Pull Request URL</label>
-            <input 
-              type="url" 
+            <input
+              type="url"
               required
               value={prUrl}
               onChange={(e) => setPrUrl(e.target.value)}
-              placeholder="https://github.com/..."
+              placeholder="https://github.com/org/repo/pull/123"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-google-blue focus:border-google-blue outline-none transition-all"
             />
           </div>

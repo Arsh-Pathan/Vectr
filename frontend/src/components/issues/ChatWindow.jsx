@@ -5,7 +5,7 @@ import api from '../../config/api';
 
 export default function ChatWindow({ issueId }) {
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hi! I am your Guidance Agent. How can I help you with this issue?' }
+    { role: 'assistant', content: 'Hi! I am your Guidance Agent. Ask me anything about this issue and I will guide you — without giving away the answer!' }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -13,7 +13,7 @@ export default function ChatWindow({ issueId }) {
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -21,34 +21,29 @@ export default function ChatWindow({ issueId }) {
   }, [messages, isTyping]);
 
   const handleSend = async (text) => {
-    if (!text.trim()) return;
+    const trimmed = text.trim();
+    if (!trimmed) return;
 
-    const userMessage = { role: 'user', content: text };
+    const userMessage = { role: 'user', content: trimmed };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setSuggestions([]);
     setIsTyping(true);
 
     try {
-      // Mock API delay
-      await new Promise(res => setTimeout(res, 1500));
-      
-      // Real API call would be:
-      // const res = await api.post(`/issues/${issueId}/chat`, { message: text });
-      
-      const aiResponse = { 
-        role: 'assistant', 
-        content: `I can certainly help with that! When looking at "${text}", it's important to consider the edge cases in the parser validation.`
-      };
-      
-      setMessages(prev => [...prev, aiResponse]);
-      setSuggestions([
-        "What regex pattern would you start with?",
-        "Have you considered the edge cases?"
-      ]);
+      // POST /api/issues/:id/chat
+      const res = await api.post(`/issues/${issueId}/chat`, { message: trimmed });
+      const { response, follow_up_suggestions } = res.data;
+
+      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+      setSuggestions(follow_up_suggestions || []);
     } catch (error) {
-      console.error('Chat error:', error);
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error.' }]);
+      const detail = error.response?.data?.detail || error.message;
+      console.error('Chat error:', detail);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: `Sorry, I encountered an error: ${detail}`
+      }]);
     } finally {
       setIsTyping(false);
     }
@@ -69,23 +64,23 @@ export default function ChatWindow({ issueId }) {
             }`}>
               {msg.role === 'user' ? <User size={16} /> : <Bot size={16} />}
             </div>
-            
-            <div className={`px-4 py-2 rounded-2xl text-sm ${
-              msg.role === 'user' 
-                ? 'bg-gray-100 text-gray-900 rounded-tr-sm' 
+
+            <div className={`px-4 py-2 rounded-2xl text-sm max-w-[80%] ${
+              msg.role === 'user'
+                ? 'bg-gray-100 text-gray-900 rounded-tr-sm'
                 : 'bg-white border border-gray-200 text-gray-800 rounded-tl-sm shadow-sm'
             }`}>
               {msg.content}
             </div>
           </div>
         ))}
-        
+
         {isTyping && (
           <div className="flex gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-100 text-google-blue flex items-center justify-center flex-shrink-0">
               <Bot size={16} />
             </div>
-            <div className="px-4 py-3 rounded-2xl bg-white border border-gray-200 rounded-tl-sm shadow-sm flex gap-1">
+            <div className="px-4 py-3 rounded-2xl bg-white border border-gray-200 rounded-tl-sm shadow-sm flex gap-1 items-center">
               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
@@ -98,7 +93,7 @@ export default function ChatWindow({ issueId }) {
       {suggestions.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-4">
           {suggestions.map((sug, idx) => (
-            <button 
+            <button
               key={idx}
               onClick={() => handleSend(sug)}
               className="text-xs font-medium bg-blue-50 text-google-blue border border-blue-100 px-3 py-1.5 rounded-full hover:bg-blue-100 transition-colors text-left"
@@ -109,18 +104,19 @@ export default function ChatWindow({ issueId }) {
         </div>
       )}
 
-      <form 
+      <form
         onSubmit={(e) => { e.preventDefault(); handleSend(input); }}
         className="flex items-center gap-2"
       >
-        <input 
+        <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask for guidance..."
-          className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-google-blue focus:bg-white transition-all"
+          disabled={isTyping}
+          className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-google-blue focus:bg-white transition-all disabled:opacity-60"
         />
-        <button 
+        <button
           type="submit"
           disabled={!input.trim() || isTyping}
           className="w-9 h-9 rounded-full bg-google-blue text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"

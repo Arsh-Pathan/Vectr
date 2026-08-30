@@ -1,24 +1,30 @@
 import React from 'react';
+import api from '../../config/api';
 
 export default function GitHubConnectButton({ onSuccess, className = "" }) {
   const handleConnect = async () => {
     try {
-      console.log('Simulating GitHub connect...');
-      await new Promise(res => setTimeout(res, 1500));
-      
-      // We would call:
-      // const response = await api.post('/auth/github/connect', { code: 'mock_code' });
-      
+      // GitHub OAuth flow: In production, redirect the user to GitHub's OAuth page,
+      // then extract the `code` from the callback URL query param.
+      // For now we use a placeholder code — replace with real GitHub OAuth code.
+      const code = 'mock_github_oauth_code';
+
+      const response = await api.post('/auth/github/connect', { code });
+      const { profile_analysis, user } = response.data;
+
       if (onSuccess) {
-        // Pass mock profile analysis as per API contract
+        // Pass through the real profile_analysis from the backend
         onSuccess({
-          level: 18,
-          tier: 'beginner',
-          points: 350
+          level: profile_analysis.level,
+          tier: profile_analysis.tier,
+          points: profile_analysis.points,
+          top_languages: profile_analysis.top_languages,
         });
       }
     } catch (error) {
-      console.error('GitHub connect failed:', error);
+      const detail = error.response?.data?.detail || error.message;
+      console.error('GitHub connect failed:', detail);
+      alert(`GitHub connect failed: ${detail}`);
     }
   };
 
