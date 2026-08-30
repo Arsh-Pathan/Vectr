@@ -94,7 +94,6 @@ export default function Landing() {
                 </div>
               </div>
             </div>
-          </div>
         </section>
 
         {/* --- 2. HOW IT WORKS (Alternating Layout) --- */}
