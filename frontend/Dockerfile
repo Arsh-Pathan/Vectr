@@ -4,6 +4,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+ARG VITE_GOOGLE_CLIENT_ID
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 # We must ensure the frontend knows it's being served from the root domain,
 # and it hits the relative /api path so the local NGINX proxy catches it.
 ENV VITE_API_URL=/api
