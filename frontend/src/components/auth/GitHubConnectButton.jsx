@@ -2,7 +2,9 @@ import React from 'react';
 
 export default function GitHubConnectButton({ className = "" }) {
   const handleConnect = () => {
-    const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+    // Fallback to the real ID if Docker refuses to inject it
+    const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID || "Ov23liB4AtWhgwkKzMZ3";
+    
     if (!clientId || clientId === "mock_github_client_id") {
       alert("Missing VITE_GITHUB_CLIENT_ID in environment.");
       return;
