@@ -1,5 +1,6 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
+from google.adk import Agent
 from google import genai
 from google.genai import types
 from config import GEMINI_API_KEY, GEMINI_MODEL
@@ -17,11 +18,20 @@ class IssueAnalysisResult(BaseModel):
 
 
 class IssueScannerAgent:
-    """Agent 2: Analyzes GitHub issues to assign difficulty, skills, and complexity metrics."""
+    """Agent 2: Google ADK Issue Scanner Agent."""
 
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         self.api_key = api_key or GEMINI_API_KEY
-        self.model = model or GEMINI_MODEL
+        self.model_name = model or GEMINI_MODEL
+        
+        # Instantiate Google ADK Agent
+        self.adk_agent = Agent(
+            name="issue_scanner_agent",
+            description="Scans GitHub repositories and categorizes open issues by difficulty, skills, and complexity",
+            model=self.model_name,
+            instruction="You are the Issue Scanner Agent for Vectr. Accurately categorize GitHub issues by difficulty (beginner/moderate/advanced), difficulty_score (1-100), required skills, and estimated time.",
+            output_schema=IssueAnalysisResult,
+        )
         self.client = genai.Client(api_key=self.api_key)
 
     def scan_issue(
@@ -37,7 +47,6 @@ class IssueScannerAgent:
         repo_langs = ", ".join(languages_in_repo) if languages_in_repo else "Unknown"
 
         prompt = f"""
-You are the Issue Scanner Agent for Vectr.
 Analyze this GitHub issue from repository '{repo_name}':
 
 - Repo Main Languages: {repo_langs}
@@ -55,12 +64,12 @@ Return the JSON matching the required schema.
 """
 
         response = self.client.models.generate_content(
-            model=self.model,
+            model=self.adk_agent.model,
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
-                response_schema=IssueAnalysisResult,
-                system_instruction="You are Vectr's Issue Scanner Agent. Accurately categorize GitHub issues by difficulty, skills, and workload.",
+                response_schema=self.adk_agent.output_schema,
+                system_instruction=self.adk_agent.instruction,
             ),
         )
         return response.parsed

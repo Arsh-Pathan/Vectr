@@ -1,11 +1,10 @@
 import httpx
 from typing import Dict, Any, List, Optional
-from datetime import datetime, timezone
 from config import GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
 
 
 class GitHubService:
-    """Service to interact with GitHub API for profile ingestion and OAuth."""
+    """Service to interact with GitHub API for public repo/issue ingestion and OAuth."""
 
     @staticmethod
     async def exchange_code_for_token(code: str) -> Optional[str]:
@@ -55,7 +54,7 @@ class GitHubService:
 
     @staticmethod
     async def fetch_user_repositories(username: str, token: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Fetch public repositories and detect languages."""
+        """Fetch public repositories and detect languages (No PAT needed for public repos)."""
         if token and token.startswith("mock_gh_token"):
             return [
                 {"name": "fastapi-demo", "language": "Python", "stargazers_count": 12},
@@ -64,16 +63,59 @@ class GitHubService:
                 {"name": "docs-site", "language": "HTML", "stargazers_count": 2},
             ]
 
-        headers = {"Accept": "application/vnd.github+json"}
-        if token:
+        headers = {
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "Vectr-Platform/1.0",
+        }
+        if token and not token.startswith("mock_"):
             headers["Authorization"] = f"Bearer {token}"
 
         url = f"https://api.github.com/users/{username}/repos?per_page=50&sort=updated"
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, headers=headers, timeout=10.0)
-            if resp.status_code == 200:
-                return resp.json()
-            return []
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(url, headers=headers, timeout=10.0)
+                if resp.status_code == 200:
+                    return resp.json()
+        except Exception:
+            pass
+        return []
+
+    @staticmethod
+    async def fetch_repo_issues(repo_full_name: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Fetch public issues from a repository using GitHub Public API (Zero user PAT required)."""
+        url = f"https://api.github.com/repos/{repo_full_name}/issues?state=open&per_page={limit}"
+        headers = {
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "Vectr-Platform/1.0",
+        }
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(url, headers=headers, timeout=10.0)
+                if resp.status_code == 200:
+                    raw_issues = resp.json()
+                    # Filter out pull requests (GitHub issues API includes PRs with a 'pull_request' key)
+                    issues = [i for i in raw_issues if "pull_request" not in i]
+                    return issues
+        except Exception:
+            pass
+        return []
+
+    @staticmethod
+    async def fetch_org_repositories(org_name: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Fetch public repositories for an Organization (Zero user PAT required)."""
+        url = f"https://api.github.com/orgs/{org_name}/repos?type=public&per_page={limit}&sort=updated"
+        headers = {
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "Vectr-Platform/1.0",
+        }
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(url, headers=headers, timeout=10.0)
+                if resp.status_code == 200:
+                    return resp.json()
+        except Exception:
+            pass
+        return []
 
     @classmethod
     async def get_developer_github_stats(cls, username: str, token: Optional[str] = None) -> Dict[str, Any]:
