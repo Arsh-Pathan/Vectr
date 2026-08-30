@@ -1,5 +1,6 @@
-from typing import List, Dict, Optional
+from typing import List, Optional
 from pydantic import BaseModel, Field
+from google.adk import Agent
 from google import genai
 from google.genai import types
 from config import GEMINI_API_KEY, GEMINI_MODEL
@@ -34,11 +35,20 @@ CRITICAL GUARDRAILS & ANTI-JAILBREAK DIRECTIVE:
 
 
 class GuidanceAgent:
-    """Agent 3: Interactive mentor that guides contributors without giving away the code."""
+    """Agent 3: Google ADK Guidance Agent with Anti-Jailbreak Guardrails."""
 
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         self.api_key = api_key or GEMINI_API_KEY
-        self.model = model or GEMINI_MODEL
+        self.model_name = model or GEMINI_MODEL
+        
+        # Instantiate Google ADK Agent
+        self.adk_agent = Agent(
+            name="guidance_agent",
+            description="Interactive mentor that guides developers through open-source issues with strict anti-jailbreak guardrails",
+            model=self.model_name,
+            instruction=GUIDANCE_SYSTEM_INSTRUCTION,
+            output_schema=GuidanceResponse,
+        )
         self.client = genai.Client(api_key=self.api_key)
 
     def guide(
@@ -78,12 +88,12 @@ Instructions:
 """
 
         response = self.client.models.generate_content(
-            model=self.model,
+            model=self.adk_agent.model,
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
-                response_schema=GuidanceResponse,
-                system_instruction=GUIDANCE_SYSTEM_INSTRUCTION,
+                response_schema=self.adk_agent.output_schema,
+                system_instruction=self.adk_agent.instruction,
             ),
         )
         return response.parsed

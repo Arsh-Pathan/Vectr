@@ -1,5 +1,6 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
+from google.adk import Agent
 from google import genai
 from google.genai import types
 from config import GEMINI_API_KEY, GEMINI_MODEL
@@ -73,11 +74,20 @@ class ProfileAnalysisResult(BaseModel):
 
 
 class ProfileAgent:
-    """Agent 1: Evaluates GitHub metadata and produces structured developer skill profile."""
+    """Agent 1: Google ADK Profile Analysis Agent."""
 
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         self.api_key = api_key or GEMINI_API_KEY
-        self.model = model or GEMINI_MODEL
+        self.model_name = model or GEMINI_MODEL
+        
+        # Instantiate Google ADK Agent
+        self.adk_agent = Agent(
+            name="profile_agent",
+            description="Analyzes developer GitHub metadata and calculates skill score and proficiency",
+            model=self.model_name,
+            instruction="You are the Profile Analysis Agent for Vectr. Analyze a developer's GitHub profile data and calculate their skill assessment accurately.",
+            output_schema=ProfileAnalysisResult,
+        )
         self.client = genai.Client(api_key=self.api_key)
 
     def calculate_seed_points(
@@ -115,7 +125,7 @@ class ProfileAgent:
         bio: str = "",
         sample_repos: Optional[List[str]] = None,
     ) -> ProfileAnalysisResult:
-        """Analyze GitHub stats using deterministic points + Gemini structured insights."""
+        """Analyze GitHub stats using deterministic points + ADK structured insights."""
         points = self.calculate_seed_points(
             repos=repos_count,
             commits=commits_count,
@@ -128,7 +138,6 @@ class ProfileAgent:
         tier = level_to_tier(level)
 
         prompt = f"""
-You are the Profile Analysis Agent for Vectr (Open Source Contribution Platform).
 Analyze the following developer profile data:
 - Username: {username}
 - Bio: {bio}
@@ -150,12 +159,12 @@ Return a structured profile assessment with:
 """
 
         response = self.client.models.generate_content(
-            model=self.model,
+            model=self.adk_agent.model,
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
-                response_schema=ProfileAnalysisResult,
-                system_instruction="You are Vectr's Profile Agent. Provide structured, accurate developer skill assessments.",
+                response_schema=self.adk_agent.output_schema,
+                system_instruction=self.adk_agent.instruction,
             ),
         )
         
