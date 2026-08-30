@@ -1,8 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from database import get_db
+from database import get_db, SessionLocal
 from models import Organization, Project, Issue, Contribution
+from services.ingestion_service import ingest_org_issues
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/org", tags=["Organization"])
 
@@ -20,9 +24,25 @@ class AddProjectRequest(BaseModel):
     repo_url: str
 
 
+async def _background_ingest(org_name: str):
+    """Run issue ingestion in background so the API responds instantly."""
+    db = SessionLocal()
+    try:
+        result = await ingest_org_issues(db, org_name)
+        logger.info(f"Background ingestion for '{org_name}': {result}")
+    except Exception as e:
+        logger.error(f"Background ingestion failed for '{org_name}': {e}")
+    finally:
+        db.close()
+
+
 @router.post("/register", status_code=201)
-async def register_organization(request: OrgRegisterRequest, db: Session = Depends(get_db)):
-    """Register a new organization."""
+async def register_organization(
+    request: OrgRegisterRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    """Register a new organization and trigger issue ingestion from their GitHub repos."""
     org = Organization(
         name=request.name,
         github_org_url=request.github_org_url,
@@ -33,6 +53,12 @@ async def register_organization(request: OrgRegisterRequest, db: Session = Depen
     db.commit()
     db.refresh(org)
 
+    # Extract org name from URL (e.g. "https://github.com/freeCodeCamp" -> "freeCodeCamp")
+    org_gh_name = request.github_org_url.rstrip("/").split("/")[-1]
+
+    # Trigger background issue scanning
+    background_tasks.add_task(_background_ingest, org_gh_name)
+
     return {
         "id": org.id,
         "name": org.name,
@@ -40,6 +66,7 @@ async def register_organization(request: OrgRegisterRequest, db: Session = Depen
         "contact_email": org.contact_email,
         "description": org.description,
         "created_at": org.created_at,
+        "ingestion_status": f"Scanning {org_gh_name} repos in background...",
     }
 
 
