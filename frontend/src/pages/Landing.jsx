@@ -60,12 +60,6 @@ export default function Landing() {
                     <span>Get Started</span>
                     <ArrowRight size={18} />
                   </button>
-                  <button 
-                    onClick={() => document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })}
-                    className="text-base font-medium px-6 py-3 rounded-full bg-[#f1f3f4] text-[#202124] hover:bg-[#e8eaed] transition-all border border-gray-200"
-                  >
-                    Explore features
-                  </button>
                 </div>
               </div>
 
@@ -74,7 +68,7 @@ export default function Landing() {
                 <img 
                   src="/logo.png" 
                   alt="Vectr - Intelligent Matching. Guided Contributions." 
-                  className="w-[400px] h-[400px] object-cover rounded-full drop-shadow-2xl"
+                  className="w-[400px] h-auto drop-shadow-2xl"
                 />
               </div>
             </div>

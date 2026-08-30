@@ -15,13 +15,7 @@ export default function Issues() {
         const res = await api.get('/issues');
         setIssues(res.data?.issues || res.data || []);
       } catch (error) {
-        console.log('Using mock issues data');
-        setIssues([
-          { id: '1', repo_full_name: 'react-ui-lib', title: 'Add dark mode support', difficulty: 'moderate', points_reward: 25, required_skills: ['React', 'CSS'] },
-          { id: '2', repo_full_name: 'node-tools', title: 'Fix memory leak in worker', difficulty: 'moderate', points_reward: 25, required_skills: ['JavaScript'] },
-          { id: '3', repo_full_name: 'open-api', title: 'Update API docs', difficulty: 'beginner', points_reward: 10, required_skills: ['Markdown'] },
-          { id: '4', repo_full_name: 'freeCodeCamp/freeCodeCamp', title: 'Fix input validation in signup form', difficulty: 'beginner', points_reward: 20, required_skills: ['JavaScript', 'Regex'] }
-        ]);
+        console.error('Failed to fetch issues:', error);
       } finally {
         setLoading(false);
       }

@@ -24,41 +24,17 @@ export default function Dashboard() {
         try {
           const profileRes = await api.get('/developer/profile');
           setProfile(profileRes.data);
-        } catch (e) {
-          console.log('Using mock profile data');
-          setProfile({ level: 23, tier: 'moderate', points: 450 });
-        }
 
-        try {
           const statsRes = await api.get('/developer/stats');
           setStats(statsRes.data);
-        } catch (e) {
-          console.log('Using mock stats data');
-          setStats({ current_streak: 5, total_issues_solved: 12, daily_challenges_completed: 3 });
-        }
 
-        try {
           const issuesRes = await api.get('/issues');
-          setIssues(issuesRes.data.issues);
-        } catch (e) {
-          console.log('Using mock issues data');
-          setIssues([
-            { id: '1', repo_full_name: 'react-ui-lib', title: 'Add dark mode support', difficulty: 'moderate', points_reward: 25, required_skills: ['React', 'CSS'] },
-            { id: '2', repo_full_name: 'node-tools', title: 'Fix memory leak in worker', difficulty: 'moderate', points_reward: 25, required_skills: ['JavaScript'] },
-            { id: '3', repo_full_name: 'open-api', title: 'Update API docs', difficulty: 'beginner', points_reward: 10, required_skills: ['Markdown'] }
-          ]);
-        }
+          setIssues(issuesRes.data.issues || []);
 
-        try {
           const dailyRes = await api.get('/issues/daily');
           setDailyChallenge(dailyRes.data);
-        } catch (e) {
-          console.log('Using mock daily challenge data');
-          setDailyChallenge({
-            id: 'daily-1', repo_full_name: 'parser-tools', title: 'Fix input validation in parser.py',
-            description: 'The validation fails when users pass special characters.',
-            difficulty: 'beginner', points_reward: 15
-          });
+        } catch (error) {
+          console.error("Failed to load dashboard data", error);
         }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);

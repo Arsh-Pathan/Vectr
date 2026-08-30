@@ -22,66 +22,26 @@ export default function Profile() {
         setLoading(true);
 
         try {
-          const res = await api.get('/developer/profile');
-          setProfile(res.data);
-        } catch {
+          const profileRes = await api.get('/developer/profile');
+          // Inject the full badge array into the profile response since backend only returns basic profile
           setProfile({
-            github_username: 'sahilkumavat',
-            display_name: 'Sahil Kumavat',
-            avatar_url: null,
-            level: 23,
-            tier: 'moderate',
-            points: 450,
+            ...profileRes.data,
             badges: [
-              { id: '1', name: 'First Strike', type: 'milestone', icon_url: '/badges/badge_01_first_strike.svg', earned: true, description: 'Merged your first pull request' },
-              { id: '2', name: 'Code Explorer', type: 'milestone', icon_url: '/badges/badge_02_code_explorer.svg', earned: true, description: 'Explored 10 different codebases' },
-              { id: '3', name: 'Dark Warrior', type: 'milestone', icon_url: '/badges/badge_03_dark_warrior.svg', earned: true, description: 'Solved a critical bug at night' },
-              { id: '4', name: 'Seed Planter', type: 'milestone', icon_url: '/badges/badge_04_seed_planter.svg', earned: true, description: 'Created 5 new open-source issues' },
-              { id: '5', name: 'Knowledge Keeper', type: 'milestone', icon_url: '/badges/badge_05_knowledge_keeper.svg', earned: true, description: 'Wrote comprehensive documentation' },
-              { id: '6', name: 'Phoenix Coder', type: 'milestone', icon_url: '/badges/badge_06_phoenix_coder.svg', earned: true, description: 'Revived an abandoned project' },
-              { id: '7', name: 'Ice Breaker', type: 'milestone', icon_url: '/badges/badge_07_ice_breaker.svg', earned: false, condition: 'Comment on 20 issues' },
-              { id: '8', name: 'Heart of OSS', type: 'milestone', icon_url: '/badges/badge_08_heart_of_oss.svg', earned: false, condition: 'Sponsor an open-source project' },
-              { id: '9', name: 'Key Master', type: 'milestone', icon_url: '/badges/badge_09_key_master.svg', earned: false, condition: 'Gain maintainer access' },
-              { id: '10', name: 'Ancient Order', type: 'milestone', icon_url: '/badges/badge_10_ancient_order.svg', earned: false, condition: 'Contribute for 5 consecutive years' },
-              { id: '11', name: 'PR Wizard', type: 'milestone', icon_url: '/badges/badge_11_pr_wizard.svg', earned: false, condition: 'Have 50 PRs merged' },
-              { id: '12', name: 'Bug Slayer', type: 'milestone', icon_url: '/badges/badge_12_bug_slayer.svg', earned: false, condition: 'Close 100 bug reports' },
-              { id: '13', name: 'Night Owl', type: 'milestone', icon_url: '/badges/badge_13_night_owl.svg', earned: false, condition: 'Commit code between 2 AM and 5 AM' },
-              { id: '14', name: 'Speed Demon', type: 'milestone', icon_url: '/badges/badge_14_speed_demon.svg', earned: false, condition: 'Resolve an issue within 1 hour' },
-              { id: '15', name: 'Consistency King', type: 'streak', icon_url: '/badges/badge_15_consistency_king.svg', earned: false, condition: 'Maintain a 30-day streak' },
-              { id: '16', name: 'Documentarian', type: 'milestone', icon_url: '/badges/badge_16_documentarian.svg', earned: false, condition: 'Update READMEs in 10 repos' },
-              { id: '17', name: 'Security Guard', type: 'milestone', icon_url: '/badges/badge_17_security_guard.svg', earned: false, condition: 'Fix a security vulnerability' },
-              { id: '18', name: 'Mentor', type: 'milestone', icon_url: '/badges/badge_18_mentor.svg', earned: false, condition: 'Review 50 PRs from junior devs' },
-              { id: '19', name: 'Diamond Core', type: 'milestone', icon_url: '/badges/badge_19_diamond_core.svg', earned: false, condition: 'Contribute to a major framework' },
-              { id: '20', name: 'Legendary Star', type: 'milestone', icon_url: '/badges/badge_20_legendary_star.svg', earned: false, condition: 'Earn 10,000 reputation points' },
+              { id: '1', name: 'First Strike', type: 'milestone', icon_url: '/badges/badge_01_first_strike.svg', earned: (profileRes.data.issues_solved >= 1), description: 'Merged your first pull request' },
+              { id: '2', name: 'Code Explorer', type: 'milestone', icon_url: '/badges/badge_02_code_explorer.svg', earned: (profileRes.data.issues_solved >= 5), description: 'Explored multiple codebases' },
+              { id: '3', name: 'Consistency King', type: 'streak', icon_url: '/badges/badge_15_consistency_king.svg', earned: (profileRes.data.streak_days >= 3), condition: 'Maintain a 3-day streak' },
+              { id: '4', name: 'Daily Warrior', type: 'milestone', icon_url: '/badges/badge_13_night_owl.svg', earned: (profileRes.data.daily_challenges_completed >= 1), condition: 'Complete a daily challenge' },
+              { id: '5', name: 'Legendary Star', type: 'milestone', icon_url: '/badges/badge_20_legendary_star.svg', earned: (profileRes.data.points >= 5000), condition: 'Earn 5,000 points' },
             ]
           });
-        }
 
-        try {
-          const res = await api.get('/developer/stats');
-          setStats(res.data);
-        } catch {
-          setStats({
-            current_streak: 5,
-            total_issues_solved: 12,
-            daily_challenges_completed: 3,
-            heatmap: Array.from({ length: 20 }, (_, i) => {
-              const d = new Date();
-              d.setDate(d.getDate() - i * 2);
-              return { date: d.toISOString().split('T')[0], count: Math.floor(Math.random() * 4) + 1 };
-            })
-          });
-        }
+          const statsRes = await api.get('/developer/stats');
+          setStats(statsRes.data);
 
-        try {
-          const res = await api.get('/developer/contributions');
-          setContributions(res.data);
-        } catch {
-          setContributions([
-            { id: 'c1', issue_title: 'Fix input validation in signup form', repo_full_name: 'freeCodeCamp/freeCodeCamp', completed_at: new Date(Date.now() - 86400000).toISOString(), points_earned: 10, pr_url: 'https://github.com' },
-            { id: 'c2', issue_title: 'Update API documentation for v2 endpoints', repo_full_name: 'node-tools/node-tools', completed_at: new Date(Date.now() - 3 * 86400000).toISOString(), points_earned: 15, pr_url: 'https://github.com' },
-            { id: 'c3', issue_title: 'Add dark mode support to sidebar', repo_full_name: 'react-ui-lib/react-ui', completed_at: new Date(Date.now() - 7 * 86400000).toISOString(), points_earned: 25, pr_url: null },
-          ]);
+          const contribsRes = await api.get('/developer/contributions');
+          setContributions(contribsRes.data.contributions || []);
+        } catch (error) {
+          console.error("Failed to load profile data", error);
         }
       } finally {
         setLoading(false);

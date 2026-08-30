@@ -21,7 +21,7 @@ export default function Settings() {
                 className="w-24 h-24 rounded-full border border-gray-200"
               />
               <div>
-                <p className="text-lg font-medium text-gray-900">{user?.name || 'Developer'}</p>
+                <p className="text-lg font-medium text-gray-900">{user?.name || user?.github_username || 'Developer'}</p>
                 <p className="text-sm text-gray-500">Connected via GitHub</p>
                 <button className="mt-2 text-sm text-google-blue hover:text-blue-700 font-medium">
                   Update Profile Picture

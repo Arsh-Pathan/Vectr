@@ -17,46 +17,11 @@ export default function IssueDetail() {
     const fetchIssue = async () => {
       try {
         setLoading(true);
-        // Simulate API or actual call
         try {
           const res = await api.get(`/issues/${id}`);
           setData(res.data);
         } catch (error) {
-          console.log('Using mock issue detail data');
-          // Mock data matching the api-contract.md
-          setData({
-            issue: {
-              id: id,
-              github_issue_id: 42,
-              repo_full_name: 'freeCodeCamp/freeCodeCamp',
-              title: 'Fix input validation in signup form',
-              description: 'The signup form doesn\'t validate email format properly. Users can submit forms with invalid email addresses like "user@" or "user@.com".',
-              url: 'https://github.com/freeCodeCamp/freeCodeCamp/issues/42',
-              difficulty: 'beginner',
-              difficulty_score: 22,
-              required_skills: ['JavaScript', 'React', 'Regex'],
-              labels: ['bug', 'good-first-issue'],
-              points_reward: 10
-            },
-            guidance: {
-              suggested_approach: [
-                "Look at the signup form component in src/components/SignupForm.jsx",
-                "The current validation only checks if the field is empty",
-                "Consider using a regex pattern for email validation",
-                "Test edge cases: missing domain, missing TLD, special characters"
-              ],
-              relevant_files: [
-                "src/components/SignupForm.jsx",
-                "src/utils/validators.js",
-                "tests/SignupForm.test.js"
-              ],
-              concepts_to_review: [
-                "Regular expressions for email validation",
-                "React form handling"
-              ],
-              estimated_time: "30 min - 1 hour"
-            }
-          });
+          console.error('Failed to fetch issue details:', error);
         }
       } catch (error) {
         console.error('Error fetching issue:', error);
