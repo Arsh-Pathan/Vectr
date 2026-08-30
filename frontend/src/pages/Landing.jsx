@@ -1,7 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
-import GoogleLoginButton from '../components/auth/GoogleLoginButton';
+import DecryptedText from '../components/animations/DecryptedText';
+import PixelTransition from '../components/animations/PixelTransition';
+import SoftAurora from '../components/backgrounds/SoftAurora';
 import { Compass, TrendingUp, Sparkles, Code, Target, ArrowRight } from 'lucide-react';
 
 export default function Landing() {
@@ -13,51 +15,85 @@ export default function Landing() {
       
       <main className="flex-1 w-full">
         {/* --- 1. HERO SECTION --- */}
-        <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 tracking-tight leading-tight mb-6">
-            Find Your Next Open Source<br className="hidden md:block" />
-            Contribution, <span className="text-google-blue">Intelligently.</span>
-          </h1>
-          <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto">
-            Vectr analyzes your GitHub profile to match you with the perfect issues. Level up your skills with AI-guided assistance, without ever getting the answer handed to you.
-          </p>
-          
-          <div className="flex flex-col items-center space-y-4 mb-16">
-            <GoogleLoginButton 
-              onSuccess={() => navigate('/auth')} 
-              text="Get Started" 
-              className="text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all"
+        <section className="relative pt-24 pb-16 w-full border-b border-gray-100 overflow-hidden">
+          {/* Soft Aurora Background */}
+          <div className="absolute inset-0 z-0 opacity-40 mix-blend-multiply">
+            <SoftAurora 
+              lightMode={true}
+              color1="#4285F4" 
+              color2="#d2e3fc"
+              mouseInfluence={0.5}
+              speed={0.4}
             />
-            <p className="text-sm text-gray-400 font-medium">Free forever for open source contributors.</p>
           </div>
 
-          {/* Hero App Mockup Placeholder */}
-          <div className="w-full max-w-5xl mx-auto bg-white rounded-2xl border border-gray-200 shadow-2xl overflow-hidden relative">
-            <div className="h-10 bg-gray-50 border-b border-gray-200 flex items-center px-4 gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-400"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-              <div className="w-3 h-3 rounded-full bg-green-400"></div>
+          <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
+            <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 tracking-tight leading-tight mb-6">
+              Find Your Next{' '}
+              <DecryptedText
+                text="Open Source"
+                animateOn="inViewHover"
+                speed={20}
+                maxIterations={30}
+                characters="ABCDEF0123456789"
+                className="text-gray-900"
+                encryptedClassName="text-gray-400 font-mono"
+              />
+              <br className="hidden md:block" />
+              Contribution,{' '}
+              <span className="text-google-blue inline-block">
+                <DecryptedText
+                  text="Intelligently."
+                  animateOn="inViewHover"
+                  speed={20}
+                  maxIterations={40}
+                  characters="!@#$%^&*()_+{}[]|:;<>?"
+                  className="text-google-blue"
+                  encryptedClassName="text-google-blue/50 font-mono"
+                />
+              </span>
+            </h1>
+            <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto">
+              Vectr analyzes your GitHub profile to match you with the perfect issues. Level up your skills with AI-guided assistance, without ever getting the answer handed to you.
+            </p>
+            
+            <div className="flex flex-col items-center space-y-4 mb-16">
+              <GoogleLoginButton 
+                onSuccess={() => navigate('/auth')} 
+                text="Get Started" 
+                className="text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all"
+              />
+              <p className="text-sm text-gray-400 font-medium">Free forever for open source contributors.</p>
             </div>
-            <div className="h-[400px] md:h-[600px] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative overflow-hidden">
-              {/* Decorative elements for the mock */}
-              <div className="absolute top-1/4 left-10 w-48 h-32 bg-white rounded-lg shadow-sm border border-gray-100 p-4 transform -rotate-6 hidden md:block">
-                <div className="w-1/2 h-4 bg-gray-200 rounded mb-3"></div>
-                <div className="w-full h-2 bg-gray-100 rounded mb-2"></div>
-                <div className="w-3/4 h-2 bg-gray-100 rounded"></div>
+
+            {/* Hero App Mockup Placeholder */}
+            <div className="w-full max-w-5xl mx-auto bg-white/80 backdrop-blur-md rounded-2xl border border-gray-200 shadow-2xl overflow-hidden relative">
+              <div className="h-10 bg-white/50 border-b border-gray-200 flex items-center px-4 gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                <div className="w-3 h-3 rounded-full bg-green-400"></div>
               </div>
-              <div className="absolute bottom-1/4 right-10 w-56 h-40 bg-white rounded-lg shadow-sm border border-gray-100 p-4 transform rotate-3 hidden md:block">
-                <div className="flex items-center gap-3 mb-3">
-                   <div className="w-8 h-8 rounded-full bg-blue-100"></div>
-                   <div className="w-20 h-4 bg-gray-200 rounded"></div>
+              <div className="h-[400px] md:h-[600px] bg-gradient-to-br from-gray-50/50 to-gray-100/50 flex items-center justify-center relative overflow-hidden">
+                {/* Decorative elements for the mock */}
+                <div className="absolute top-1/4 left-10 w-48 h-32 bg-white rounded-lg shadow-sm border border-gray-100 p-4 transform -rotate-6 hidden md:block">
+                  <div className="w-1/2 h-4 bg-gray-200 rounded mb-3"></div>
+                  <div className="w-full h-2 bg-gray-100 rounded mb-2"></div>
+                  <div className="w-3/4 h-2 bg-gray-100 rounded"></div>
                 </div>
-                <div className="w-full h-16 bg-gray-50 rounded border border-gray-100"></div>
-              </div>
-              {/* Center badge */}
-              <div className="flex flex-col items-center">
-                <div className="w-20 h-20 bg-white rounded-full shadow-md flex items-center justify-center mb-4 text-google-blue">
-                  <Sparkles size={36} />
+                <div className="absolute bottom-1/4 right-10 w-56 h-40 bg-white rounded-lg shadow-sm border border-gray-100 p-4 transform rotate-3 hidden md:block">
+                  <div className="flex items-center gap-3 mb-3">
+                     <div className="w-8 h-8 rounded-full bg-blue-100"></div>
+                     <div className="w-20 h-4 bg-gray-200 rounded"></div>
+                  </div>
+                  <div className="w-full h-16 bg-gray-50 rounded border border-gray-100"></div>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800">AI Match: 98%</h3>
+                {/* Center badge */}
+                <div className="flex flex-col items-center">
+                  <div className="w-20 h-20 bg-white rounded-full shadow-md flex items-center justify-center mb-4 text-google-blue">
+                    <Sparkles size={36} />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-800">AI Match: 98%</h3>
+                </div>
               </div>
             </div>
           </div>
@@ -80,12 +116,29 @@ export default function Landing() {
                   We analyze your public repositories, contributions, and top languages to build a comprehensive profile of your current skill level. No manual configuration required.
                 </p>
               </div>
-              <div className="flex-1 w-full">
-                <div className="aspect-video bg-gradient-to-tr from-gray-50 to-gray-100 rounded-2xl border border-gray-200 flex items-center justify-center shadow-sm">
-                  <svg className="w-16 h-16 text-gray-300" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-                  </svg>
-                </div>
+              <div className="flex-1 w-full relative">
+                <PixelTransition
+                  gridSize={12}
+                  pixelColor="#4285F4"
+                  animationStepDuration={0.4}
+                  className="rounded-2xl border border-gray-200 shadow-sm"
+                  aspectRatio="56.25%" /* aspect-video equivalent */
+                  firstContent={
+                    <div className="w-full h-full bg-gradient-to-tr from-gray-50 to-gray-100 flex items-center justify-center">
+                      <svg className="w-16 h-16 text-gray-300" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                      </svg>
+                    </div>
+                  }
+                  secondContent={
+                    <div className="w-full h-full bg-gradient-to-tr from-gray-800 to-gray-900 flex items-center justify-center">
+                      <svg className="w-16 h-16 text-green-400" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                      </svg>
+                      <div className="absolute bottom-4 right-4 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">Connected</div>
+                    </div>
+                  }
+                />
               </div>
             </div>
 
@@ -98,21 +151,38 @@ export default function Landing() {
                   Our algorithm scans thousands of open-source issues daily. We filter out the noise and only show you issues that perfectly match your tech stack and current difficulty level.
                 </p>
               </div>
-              <div className="flex-1 w-full">
-                <div className="aspect-video bg-gradient-to-tr from-blue-50 to-blue-100 rounded-2xl border border-blue-200 flex items-center justify-center shadow-sm relative overflow-hidden">
-                   <div className="absolute -left-6 top-10 w-3/4 h-16 bg-white/60 backdrop-blur-sm rounded-lg border border-white/40 shadow-sm flex items-center px-4">
-                     <div className="w-8 h-8 rounded bg-green-100 mr-3"></div>
-                     <div className="flex-1 h-3 bg-gray-200 rounded"></div>
-                   </div>
-                   <div className="absolute right-4 bottom-12 w-2/3 h-20 bg-white/80 backdrop-blur-sm rounded-lg border border-white/40 shadow-sm flex items-center px-4">
-                     <div className="w-8 h-8 rounded bg-google-blue/20 mr-3"></div>
-                     <div className="flex-1 space-y-2">
-                       <div className="w-full h-3 bg-gray-200 rounded"></div>
-                       <div className="w-1/2 h-3 bg-gray-100 rounded"></div>
-                     </div>
-                   </div>
-                   <Target size={64} className="text-google-blue opacity-50" />
-                </div>
+              <div className="flex-1 w-full relative">
+                <PixelTransition
+                  gridSize={12}
+                  pixelColor="#4285F4"
+                  animationStepDuration={0.4}
+                  className="rounded-2xl border border-blue-200 shadow-sm"
+                  aspectRatio="56.25%"
+                  firstContent={
+                    <div className="w-full h-full bg-gradient-to-tr from-blue-50 to-blue-100 flex items-center justify-center relative overflow-hidden">
+                       <div className="absolute -left-6 top-10 w-3/4 h-16 bg-white/60 backdrop-blur-sm rounded-lg border border-white/40 shadow-sm flex items-center px-4">
+                         <div className="w-8 h-8 rounded bg-green-100 mr-3"></div>
+                         <div className="flex-1 h-3 bg-gray-200 rounded"></div>
+                       </div>
+                       <div className="absolute right-4 bottom-12 w-2/3 h-20 bg-white/80 backdrop-blur-sm rounded-lg border border-white/40 shadow-sm flex items-center px-4">
+                         <div className="w-8 h-8 rounded bg-google-blue/20 mr-3"></div>
+                         <div className="flex-1 space-y-2">
+                           <div className="w-full h-3 bg-gray-200 rounded"></div>
+                           <div className="w-1/2 h-3 bg-gray-100 rounded"></div>
+                         </div>
+                       </div>
+                       <Target size={64} className="text-google-blue opacity-50" />
+                    </div>
+                  }
+                  secondContent={
+                    <div className="w-full h-full bg-gradient-to-tr from-google-blue to-blue-600 flex items-center justify-center relative overflow-hidden">
+                       <Target size={96} className="text-white opacity-80" />
+                       <div className="absolute inset-0 flex items-center justify-center bg-black/10 backdrop-blur-sm">
+                          <span className="text-white font-bold text-2xl tracking-wide">Match Found</span>
+                       </div>
+                    </div>
+                  }
+                />
               </div>
             </div>
 
@@ -125,10 +195,26 @@ export default function Landing() {
                   Stuck on a problem? Chat with our Gemini-powered Guidance Agent. It reads the issue context and gives you structural hints, documentation links, and nudges — never just the raw code.
                 </p>
               </div>
-              <div className="flex-1 w-full">
-                <div className="aspect-video bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl border border-purple-100 flex items-center justify-center shadow-sm">
-                  <Sparkles size={64} className="text-purple-300" />
-                </div>
+              <div className="flex-1 w-full relative">
+                <PixelTransition
+                  gridSize={12}
+                  pixelColor="#4285F4"
+                  animationStepDuration={0.4}
+                  className="rounded-2xl border border-purple-100 shadow-sm"
+                  aspectRatio="56.25%"
+                  firstContent={
+                    <div className="w-full h-full bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
+                      <Sparkles size={64} className="text-purple-300" />
+                    </div>
+                  }
+                  secondContent={
+                    <div className="w-full h-full bg-[#1e1e2e] flex flex-col items-center justify-center p-6 text-center">
+                      <Sparkles size={32} className="text-purple-400 mb-2" />
+                      <div className="w-3/4 h-3 bg-gray-600 rounded mb-2"></div>
+                      <div className="w-1/2 h-3 bg-gray-700 rounded"></div>
+                    </div>
+                  }
+                />
               </div>
             </div>
 
