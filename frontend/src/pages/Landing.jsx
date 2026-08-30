@@ -4,6 +4,7 @@ import Navbar from '../components/layout/Navbar';
 import DecryptedText from '../components/animations/DecryptedText';
 import PixelTransition from '../components/animations/PixelTransition';
 import GlowingCard from '../components/animations/GlowingCard';
+import Antigravity from '../components/animations/Antigravity';
 import { Compass, TrendingUp, Sparkles, Code, Target, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,8 +22,21 @@ export default function Landing() {
       <main className="flex-1 w-full">
         {/* --- 1. HERO SECTION --- */}
         <section className="relative pt-32 pb-24 w-full overflow-hidden flex flex-col items-center justify-center min-h-[90vh]">
-          {/* Plain background now */}
-          
+          {/* Antigravity background */}
+          <div className="absolute inset-0 z-0">
+            <Antigravity
+              count={300}
+              magnetRadius={6}
+              ringRadius={7}
+              waveSpeed={0.7}
+              waveAmplitude={1}
+              particleSize={1.5}
+              lerpSpeed={0.05}
+              color="#4285F4" // Google Blue
+              autoAnimate={true}
+              particleVariance={1}
+            />
+          </div>
           <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mt-[-10vh]">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
               {/* Left side: Text */}
