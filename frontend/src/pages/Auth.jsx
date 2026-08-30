@@ -7,12 +7,41 @@ import GitHubConnectButton from '../components/auth/GitHubConnectButton';
 import LanguageSelector from '../components/auth/LanguageSelector';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import api from '../config/api';
 
 export default function Auth() {
   const navigate = useNavigate();
   const { login, user } = useAuth();
   const [step, setStep] = useState(1);
   const [githubData, setGithubData] = useState(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    
+    if (code) {
+      // We returned from GitHub!
+      setStep(3); 
+      // Clean up the URL
+      window.history.replaceState({}, document.title, '/auth');
+      
+      api.post('/auth/github/connect', { code })
+        .then(response => {
+          const { profile_analysis } = response.data;
+          handleGitHubSuccess({
+            level: profile_analysis.level,
+            tier: profile_analysis.tier,
+            points: profile_analysis.points,
+            top_languages: profile_analysis.top_languages,
+          });
+        })
+        .catch(error => {
+          console.error(error);
+          alert('Failed to connect GitHub');
+          setStep(2);
+        });
+    }
+  }, []);
 
   const handleGoogleSuccess = (data) => {
     if (data && data.access_token) {
