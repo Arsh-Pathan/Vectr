@@ -1,14 +1,32 @@
 import json
-from typing import List, Optional
+import time
+from typing import List, Optional, Dict, Tuple, Any
 from sqlalchemy.orm import Session
 from models import Issue, User, Contribution
 
 
 class MatchingService:
-    """Zero-token relational SQL engine that pairs developers with suitable issues."""
+    """Zero-token relational SQL engine with Lazy Skill-Bucket Caching."""
 
-    @staticmethod
+    _bucket_cache: Dict[str, Tuple[float, List[Any]]] = {}
+    CACHE_TTL_SECONDS = 300  # 5 minutes cache
+
+    @classmethod
+    def get_skill_bucket(cls, user: User) -> str:
+        """Derive skill bucket from user tier, level band (in brackets of 10), and top language."""
+        level_band = (user.level // 10) * 10
+        try:
+            langs = json.loads(user.preferred_languages or "[]")
+            top_lang = langs[0] if isinstance(langs, list) and langs else "general"
+            if isinstance(top_lang, dict):
+                top_lang = top_lang.get("language", "general")
+        except Exception:
+            top_lang = "general"
+        return f"{user.tier}_{level_band}_{top_lang}".lower()
+
+    @classmethod
     def get_matched_issues(
+        cls,
         db: Session,
         user: User,
         difficulty: Optional[str] = None,
@@ -16,7 +34,22 @@ class MatchingService:
         search: Optional[str] = None,
         limit: int = 20,
     ) -> List[Issue]:
-        """Find matching open-source issues using fast SQL filtering."""
+        """Find matching open-source issues using fast SQL filtering + Skill-Bucket Caching."""
+        skill_bucket = cls.get_skill_bucket(user)
+        cache_key = f"{skill_bucket}_{difficulty}_{language}_{search}"
+        now = time.time()
+
+        # Check Lazy Cache
+        if cache_key in cls._bucket_cache:
+            timestamp, cached_issue_ids = cls._bucket_cache[cache_key]
+            if now - timestamp < cls.CACHE_TTL_SECONDS:
+                # Return issues from DB using cached IDs
+                issues = db.query(Issue).filter(Issue.id.in_(cached_issue_ids)).all()
+                # Maintain cached order
+                issue_map = {i.id: i for i in issues}
+                ordered = [issue_map[i_id] for i_id in cached_issue_ids if i_id in issue_map]
+                return ordered[:limit]
+
         # 1. Fetch IDs of issues the user already solved
         solved_issue_ids = [
             c.issue_id for c in db.query(Contribution.issue_id).filter(Contribution.user_id == user.id).all()
@@ -44,7 +77,13 @@ class MatchingService:
 
         # 4. Parse preferred languages & rank by match score
         try:
-            preferred_langs = set(json.loads(user.preferred_languages or "[]"))
+            preferred_langs = set()
+            raw_langs = json.loads(user.preferred_languages or "[]")
+            for item in raw_langs:
+                if isinstance(item, str):
+                    preferred_langs.add(item)
+                elif isinstance(item, dict) and "language" in item:
+                    preferred_langs.add(item["language"])
         except Exception:
             preferred_langs = set()
 
@@ -76,4 +115,8 @@ class MatchingService:
 
         # Sort candidates descending by score
         ranked_issues = sorted(all_candidates, key=score_issue, reverse=True)
-        return ranked_issues[:limit]
+        result = ranked_issues[:limit]
+
+        # Cache ranking for this skill-bucket
+        cls._bucket_cache[cache_key] = (now, [i.id for i in result])
+        return result
