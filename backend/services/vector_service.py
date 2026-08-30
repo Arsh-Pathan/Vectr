@@ -1,134 +1,175 @@
-"""Vector Database Service using ChromaDB + Gemini Embeddings for semantic issue matching."""
+import json
+import hashlib
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Tuple, Optional
 
-import chromadb
+import numpy as np
+from sqlalchemy.orm import Session
 from google import genai
 
 from config import GEMINI_API_KEY
+from models import Issue, IssueEmbedding
 
 logger = logging.getLogger(__name__)
 
-# Gemini embedding model
 EMBEDDING_MODEL = "gemini-embedding-001"
 
 
 class VectorService:
-    """Manages ChromaDB collections for semantic search over GitHub issues."""
+    """Vector embedding service using Gemini embeddings + numpy cosine similarity.
+    
+    Stores embeddings as JSON-serialized float arrays in SQLite.
+    Uses numpy for fast cosine similarity — zero extra dependencies.
+    """
 
-    _client: Optional[chromadb.ClientAPI] = None
-    _collection: Optional[chromadb.Collection] = None
-
-    @classmethod
-    def _get_collection(cls) -> chromadb.Collection:
-        if cls._collection is None:
-            cls._client = chromadb.Client()
-            cls._collection = cls._client.get_or_create_collection(
-                name="issues",
-                metadata={"hnsw:space": "cosine"},
-            )
-        return cls._collection
+    _client: Optional[genai.Client] = None
 
     @classmethod
-    def _embed_texts(cls, texts: List[str]) -> List[List[float]]:
-        """Generate embeddings using Gemini Embedding API."""
-        if not GEMINI_API_KEY or GEMINI_API_KEY.startswith("your_"):
-            # Fallback: use simple character-frequency vectors for demo
-            return [cls._simple_embed(t) for t in texts]
+    def _get_client(cls) -> genai.Client:
+        if cls._client is None:
+            cls._client = genai.Client(api_key=GEMINI_API_KEY)
+        return cls._client
 
-        try:
-            client = genai.Client(api_key=GEMINI_API_KEY)
-            result = client.models.embed_content(
-                model=EMBEDDING_MODEL,
-                contents=texts,
-            )
-            return [e.values for e in result.embeddings]
-        except Exception as e:
-            logger.warning(f"Gemini embedding failed: {e}. Using fallback embeddings.")
-            return [cls._simple_embed(t) for t in texts]
+    @classmethod
+    def embed_text(cls, text: str) -> List[float]:
+        """Generate a 768-dim embedding vector for a text string."""
+        client = cls._get_client()
+        result = client.models.embed_content(
+            model=EMBEDDING_MODEL,
+            contents=text,
+        )
+        # result.embeddings is a list of ContentEmbedding objects
+        return list(result.embeddings[0].values)
 
     @staticmethod
-    def _simple_embed(text: str) -> List[float]:
-        """Deterministic fallback embedding based on keyword hashing (768-dim to match Gemini)."""
-        import hashlib
-        vec = [0.0] * 768
-        words = text.lower().split()
-        for word in words:
-            h = int(hashlib.md5(word.encode()).hexdigest(), 16)
-            for i in range(768):
-                vec[i] += ((h >> (i % 32)) & 1) * 0.01
-        # Normalize
-        magnitude = max(sum(v * v for v in vec) ** 0.5, 1e-10)
-        return [v / magnitude for v in vec]
+    def _title_hash(title: str) -> str:
+        """SHA256 hash of title — used to skip re-embedding unchanged titles."""
+        return hashlib.sha256(title.strip().lower().encode()).hexdigest()
 
     @classmethod
-    def upsert_issues(cls, issues: List[Dict[str, Any]]) -> int:
-        """Embed and store issues in ChromaDB. Returns count of upserted issues."""
-        if not issues:
-            return 0
-
-        collection = cls._get_collection()
-
-        ids = []
-        documents = []
-        metadatas = []
-
-        for issue in issues:
-            issue_id = str(issue["id"])
-            # Build a rich text document for embedding
-            doc = f"{issue['title']}. {issue.get('description', '')}. " \
-                  f"Skills: {', '.join(issue.get('skills', []))}. " \
-                  f"Labels: {', '.join(issue.get('labels', []))}. " \
-                  f"Difficulty: {issue.get('difficulty', 'beginner')}. " \
-                  f"Repo: {issue.get('repo', '')}"
-
-            ids.append(issue_id)
-            documents.append(doc)
-            metadatas.append({
-                "repo": issue.get("repo", ""),
-                "difficulty": issue.get("difficulty", "beginner"),
-                "difficulty_score": issue.get("difficulty_score", 25),
-            })
-
-        # Generate embeddings
-        embeddings = cls._embed_texts(documents)
-
-        collection.upsert(
-            ids=ids,
-            embeddings=embeddings,
-            documents=documents,
-            metadatas=metadatas,
-        )
-
-        logger.info(f"Upserted {len(ids)} issues into vector DB")
-        return len(ids)
-
-    @classmethod
-    def search_issues(
+    def embed_and_store(
         cls,
-        user_languages: List[str],
-        user_tier: str,
-        user_level: int,
-        limit: int = 20,
-    ) -> List[str]:
-        """Semantic search: find issue IDs most relevant to a user's profile."""
-        collection = cls._get_collection()
+        db: Session,
+        issue_id: str,
+        title: str,
+        description: Optional[str] = None,
+    ) -> IssueEmbedding:
+        """Generate embedding for an issue and store it. Skips if title unchanged."""
+        title_hash = cls._title_hash(title)
 
-        if collection.count() == 0:
+        # Check if embedding already exists with same title hash
+        existing = db.query(IssueEmbedding).filter(
+            IssueEmbedding.issue_id == issue_id
+        ).first()
+
+        if existing and existing.title_hash == title_hash:
+            return existing  # Title unchanged, skip re-embedding
+
+        # Combine title + first 200 chars of description for richer embedding
+        embed_text = title
+        if description:
+            embed_text += f" — {description[:200]}"
+
+        embedding = cls.embed_text(embed_text)
+        embedding_json = json.dumps(embedding)
+
+        if existing:
+            existing.embedding = embedding_json
+            existing.title_hash = title_hash
+            existing.model_version = EMBEDDING_MODEL
+        else:
+            existing = IssueEmbedding(
+                issue_id=issue_id,
+                title_hash=title_hash,
+                embedding=embedding_json,
+                model_version=EMBEDDING_MODEL,
+            )
+            db.add(existing)
+
+        db.commit()
+        logger.info(f"Embedded issue {issue_id}: '{title[:50]}...'")
+        return existing
+
+    @classmethod
+    def find_similar_issues(
+        cls,
+        db: Session,
+        query_text: str,
+        top_k: int = 10,
+    ) -> List[Tuple[str, float]]:
+        """Find issues semantically similar to query_text.
+        
+        Returns list of (issue_id, similarity_score) tuples, sorted descending.
+        Uses numpy cosine similarity — ~1ms for 1000 vectors.
+        """
+        query_vec = np.array(cls.embed_text(query_text), dtype=np.float32)
+        query_norm = np.linalg.norm(query_vec)
+        if query_norm == 0:
             return []
 
-        # Build a query document from user profile
-        query_text = (
-            f"Developer skilled in {', '.join(user_languages) if user_languages else 'general programming'}. "
-            f"Tier: {user_tier}. Level: {user_level}. "
-            f"Looking for open source issues to contribute to."
-        )
+        # Load all stored embeddings
+        all_embeddings = db.query(IssueEmbedding).all()
+        if not all_embeddings:
+            return []
 
-        query_embedding = cls._embed_texts([query_text])[0]
+        issue_ids = []
+        vectors = []
+        for emb in all_embeddings:
+            try:
+                vec = json.loads(emb.embedding)
+                vectors.append(vec)
+                issue_ids.append(emb.issue_id)
+            except Exception:
+                continue
 
-        results = collection.query(
-            query_embeddings=[query_embedding],
-            n_results=min(limit, collection.count()),
-        )
+        if not vectors:
+            return []
 
-        return results["ids"][0] if results["ids"] else []
+        # Batch cosine similarity via numpy
+        matrix = np.array(vectors, dtype=np.float32)
+        norms = np.linalg.norm(matrix, axis=1)
+        # Avoid division by zero
+        norms = np.where(norms == 0, 1e-10, norms)
+        similarities = matrix @ query_vec / (norms * query_norm)
+
+        # Rank by similarity
+        top_indices = np.argsort(similarities)[::-1][:top_k]
+        results = [
+            (issue_ids[idx], float(similarities[idx]))
+            for idx in top_indices
+            if similarities[idx] > 0.0
+        ]
+        return results
+
+    @classmethod
+    def bulk_embed_issues(cls, db: Session) -> int:
+        """Backfill embeddings for all issues that don't have one yet.
+        
+        Returns the number of newly embedded issues.
+        """
+        # Find issues without embeddings
+        existing_issue_ids = {
+            row.issue_id for row in db.query(IssueEmbedding.issue_id).all()
+        }
+        all_issues = db.query(Issue).all()
+        missing = [iss for iss in all_issues if iss.id not in existing_issue_ids]
+
+        if not missing:
+            logger.info("All issues already have embeddings.")
+            return 0
+
+        count = 0
+        for issue in missing:
+            try:
+                cls.embed_and_store(
+                    db=db,
+                    issue_id=issue.id,
+                    title=issue.title,
+                    description=issue.description,
+                )
+                count += 1
+            except Exception as e:
+                logger.warning(f"Failed to embed issue {issue.id}: {e}")
+
+        logger.info(f"Bulk embedded {count} issues.")
+        return count
