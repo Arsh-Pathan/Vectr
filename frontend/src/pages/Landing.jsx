@@ -19,8 +19,7 @@ export default function Landing() {
           {/* Plain background now */}
           
           <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center mt-[-10vh]">
-            {/* Google Antigravity style typography: massive, tight tracking, geometric */}
-            <h1 className="text-6xl sm:text-7xl lg:text-8xl font-medium text-[#202124] tracking-[-0.04em] leading-[1.05] mb-8">
+            <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 tracking-tight leading-tight mb-6">
               Experience liftoff with<br className="hidden sm:block" />
               {' '}
               <DecryptedText
