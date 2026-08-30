@@ -107,10 +107,16 @@ export default function Dashboard() {
 
           {/* Right Column - Issues */}
           <div className="space-y-8 lg:col-span-2">
-            
-            {dailyChallenge && (
+
+            {dailyChallenge ? (
               <section>
                 <DailyChallengeCard challenge={dailyChallenge} />
+              </section>
+            ) : (
+              <section className="flex flex-col items-center justify-center py-10 bg-white rounded-2xl border border-dashed border-gray-200 text-center">
+                <div className="text-5xl mb-3">🎯</div>
+                <h3 className="font-bold text-gray-700 mb-1">No daily challenge today</h3>
+                <p className="text-sm text-gray-400">Check back tomorrow — a new challenge drops every day.</p>
               </section>
             )}
 
@@ -118,14 +124,26 @@ export default function Dashboard() {
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <span role="img" aria-label="clipboard">📋</span> Recommended Issues
               </h2>
-              
-              <div className="space-y-4">
-                {issues.map(issue => (
-                  <IssueCard key={issue.id} issue={issue} />
-                ))}
-              </div>
+
+              {issues.length > 0 ? (
+                <div className="space-y-4">
+                  {issues.map(issue => (
+                    <IssueCard key={issue.id} issue={issue} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-dashed border-gray-200 text-center">
+                  <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-4">
+                    <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  </div>
+                  <h3 className="font-bold text-gray-700 mb-1">No issues matched yet</h3>
+                  <p className="text-sm text-gray-400 max-w-xs">Keep leveling up and connecting GitHub — we'll find the perfect issues for your skill level.</p>
+                </div>
+              )}
             </section>
-            
+
           </div>
         </div>
       </main>
