@@ -6,9 +6,17 @@ RUN npm ci
 COPY . .
 ARG VITE_GOOGLE_CLIENT_ID
 ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+ARG VITE_GITHUB_CLIENT_ID
+ENV VITE_GITHUB_CLIENT_ID=$VITE_GITHUB_CLIENT_ID
 # We must ensure the frontend knows it's being served from the root domain,
 # and it hits the relative /api path so the local NGINX proxy catches it.
 ENV VITE_API_URL=/api
+
+# Explicitly write them to a .env file so Vite is absolutely forced to read them
+RUN echo "VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID" > .env.production
+RUN echo "VITE_GITHUB_CLIENT_ID=$VITE_GITHUB_CLIENT_ID" >> .env.production
+RUN echo "VITE_API_URL=/api" >> .env.production
+
 RUN npm run build
 
 # Production Stage
