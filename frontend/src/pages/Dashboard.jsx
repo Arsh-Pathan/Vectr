@@ -20,7 +20,6 @@ export default function Dashboard() {
       try {
         setLoading(true);
         // In a real app we'd Promise.all these
-        // Using mock data as fallback if API fails
         try {
           const profileRes = await api.get('/developer/profile');
           setProfile(profileRes.data);

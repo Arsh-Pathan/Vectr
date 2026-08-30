@@ -23,16 +23,9 @@ export default function Profile() {
 
         try {
           const profileRes = await api.get('/developer/profile');
-          // Inject the full badge array into the profile response since backend only returns basic profile
           setProfile({
             ...profileRes.data,
-            badges: [
-              { id: '1', name: 'First Strike', type: 'milestone', icon_url: '/badges/badge_01_first_strike.svg', earned: (profileRes.data.issues_solved >= 1), description: 'Merged your first pull request' },
-              { id: '2', name: 'Code Explorer', type: 'milestone', icon_url: '/badges/badge_02_code_explorer.svg', earned: (profileRes.data.issues_solved >= 5), description: 'Explored multiple codebases' },
-              { id: '3', name: 'Consistency King', type: 'streak', icon_url: '/badges/badge_15_consistency_king.svg', earned: (profileRes.data.streak_days >= 3), condition: 'Maintain a 3-day streak' },
-              { id: '4', name: 'Daily Warrior', type: 'milestone', icon_url: '/badges/badge_13_night_owl.svg', earned: (profileRes.data.daily_challenges_completed >= 1), condition: 'Complete a daily challenge' },
-              { id: '5', name: 'Legendary Star', type: 'milestone', icon_url: '/badges/badge_20_legendary_star.svg', earned: (profileRes.data.points >= 5000), condition: 'Earn 5,000 points' },
-            ]
+            badges: profileRes.data.badges || []
           });
 
           const statsRes = await api.get('/developer/stats');
