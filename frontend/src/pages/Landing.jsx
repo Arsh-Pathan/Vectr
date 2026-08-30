@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
+import GoogleLoginButton from '../components/auth/GoogleLoginButton';
 import DecryptedText from '../components/animations/DecryptedText';
 import PixelTransition from '../components/animations/PixelTransition';
 import SoftAurora from '../components/backgrounds/SoftAurora';
