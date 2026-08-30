@@ -1,6 +1,11 @@
+import os
+from dotenv import load_dotenv
 from google.adk import Agent
 from pydantic import BaseModel, Field
 from typing import List
+
+load_dotenv()
+model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 
 class IssueAnalysisResult(BaseModel):
@@ -16,7 +21,7 @@ class IssueAnalysisResult(BaseModel):
 root_agent = Agent(
     name="issue_scanner_agent",
     description="Scans GitHub repositories and categorizes open issues by difficulty, skills, and complexity",
-    model="gemini-2.5-flash",
+    model=model_name,
     instruction="You are the Issue Scanner Agent for Vectr. Accurately categorize GitHub issues by difficulty (beginner/moderate/advanced), difficulty_score (1-100), required skills, and estimated time.",
     output_schema=IssueAnalysisResult,
 )

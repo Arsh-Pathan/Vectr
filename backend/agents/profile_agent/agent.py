@@ -1,6 +1,11 @@
+import os
+from dotenv import load_dotenv
 from google.adk import Agent
 from pydantic import BaseModel, Field
-from typing import List, Dict
+from typing import List
+
+load_dotenv()
+model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 
 class LanguageProficiency(BaseModel):
@@ -23,7 +28,7 @@ class ProfileAnalysisResult(BaseModel):
 root_agent = Agent(
     name="profile_agent",
     description="Analyzes developer GitHub metadata and calculates skill score and proficiency",
-    model="gemini-2.5-flash",
+    model=model_name,
     instruction="You are the Profile Analysis Agent for Vectr. Analyze a developer's GitHub profile data and calculate their skill assessment accurately.",
     output_schema=ProfileAnalysisResult,
 )

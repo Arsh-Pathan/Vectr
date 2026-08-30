@@ -1,9 +1,24 @@
+import os
+import sys
 from typing import List, Optional
 from pydantic import BaseModel, Field
+from dotenv import load_dotenv
+
+# Ensure backend directory is in sys.path
+backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
+load_dotenv()
+try:
+    from config import GEMINI_API_KEY, GEMINI_MODEL
+except ImportError:
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+
 from google.adk import Agent
 from google import genai
 from google.genai import types
-from config import GEMINI_API_KEY, GEMINI_MODEL
 
 
 class IssueAnalysisResult(BaseModel):

@@ -1,6 +1,11 @@
+import os
+from dotenv import load_dotenv
 from google.adk import Agent
 from pydantic import BaseModel, Field
 from typing import List
+
+load_dotenv()
+model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 
 class GuidanceResponse(BaseModel):
@@ -25,7 +30,7 @@ CRITICAL GUARDRAILS & ANTI-JAILBREAK DIRECTIVE:
 root_agent = Agent(
     name="guidance_agent",
     description="Interactive mentor that guides developers through open-source issues with strict anti-jailbreak guardrails",
-    model="gemini-2.5-flash",
+    model=model_name,
     instruction=GUIDANCE_SYSTEM_INSTRUCTION,
     output_schema=GuidanceResponse,
 )
