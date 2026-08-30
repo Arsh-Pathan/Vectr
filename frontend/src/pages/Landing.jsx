@@ -17,48 +17,62 @@ export default function Landing() {
         <section className="relative pt-32 pb-24 w-full overflow-hidden flex flex-col items-center justify-center min-h-[90vh]">
           {/* Plain background now */}
           
-          <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center mt-[-10vh]">
-            <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 tracking-tight leading-tight mb-6">
-              Experience liftoff with<br className="hidden sm:block" />
-              {' '}
-              <DecryptedText
-                text="Open Source"
-                animateOn="inViewHover"
-                speed={20}
-                maxIterations={30}
-                characters="ABCDEF0123456789"
-                className="text-[#202124]"
-                encryptedClassName="text-gray-400 font-mono tracking-normal"
-              />
-              <br className="hidden md:block" />
-              Contributions,{' '}
-              <span className="text-google-blue inline-block">
-                <DecryptedText
-                  text="Intelligently."
-                  animateOn="inViewHover"
-                  speed={20}
-                  maxIterations={40}
-                  characters="!@#$%^&*()_+{}[]|:;<>?"
-                  className="text-google-blue"
-                  encryptedClassName="text-google-blue/50 font-mono tracking-normal"
+          <div className="relative z-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mt-[-10vh]">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+              {/* Left side: Text */}
+              <div className="flex-1 text-center lg:text-left">
+                <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 tracking-tight leading-tight mb-6">
+                  Experience liftoff with<br className="hidden sm:block" />
+                  {' '}
+                  <DecryptedText
+                    text="Open Source"
+                    animateOn="inViewHover"
+                    speed={20}
+                    maxIterations={30}
+                    characters="ABCDEF0123456789"
+                    className="text-[#202124]"
+                    encryptedClassName="text-gray-400 font-mono tracking-normal"
+                  />
+                  <br className="hidden md:block" />
+                  Contributions,{' '}
+                  <span className="text-google-blue inline-block">
+                    <DecryptedText
+                      text="Intelligently."
+                      animateOn="inViewHover"
+                      speed={20}
+                      maxIterations={40}
+                      characters="!@#$%^&*()_+{}[]|:;<>?"
+                      className="text-google-blue"
+                      encryptedClassName="text-google-blue/50 font-mono tracking-normal"
+                    />
+                  </span>
+                </h1>
+                
+                <div className="flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-4 mt-12">
+                  <button 
+                    onClick={() => navigate('/auth')}
+                    className="text-base font-medium px-6 py-3 rounded-full bg-[#202124] text-white hover:bg-[#3c4043] shadow-none transition-all flex items-center justify-center space-x-2"
+                  >
+                    <span>Get Started</span>
+                    <ArrowRight size={18} />
+                  </button>
+                  <button 
+                    onClick={() => document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })}
+                    className="text-base font-medium px-6 py-3 rounded-full bg-[#f1f3f4] text-[#202124] hover:bg-[#e8eaed] transition-all border border-gray-200"
+                  >
+                    Explore features
+                  </button>
+                </div>
+              </div>
+
+              {/* Right side: Logo */}
+              <div className="flex-shrink-0 hidden lg:flex items-center justify-center">
+                <img 
+                  src="/logo.png" 
+                  alt="Vectr - Intelligent Matching. Guided Contributions." 
+                  className="w-[400px] h-auto drop-shadow-2xl"
                 />
-              </span>
-            </h1>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12">
-              <button 
-                onClick={() => navigate('/auth')}
-                className="text-base font-medium px-6 py-3 rounded-full bg-[#202124] text-white hover:bg-[#3c4043] shadow-none transition-all flex items-center justify-center space-x-2"
-              >
-                <span>Get Started</span>
-                <ArrowRight size={18} />
-              </button>
-              <button 
-                onClick={() => document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })}
-                className="text-base font-medium px-6 py-3 rounded-full bg-[#f1f3f4] text-[#202124] hover:bg-[#e8eaed] transition-all border border-gray-200"
-              >
-                Explore features
-              </button>
+              </div>
             </div>
           </div>
 
