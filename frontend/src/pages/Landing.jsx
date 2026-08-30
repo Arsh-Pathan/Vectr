@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
-import GoogleLoginButton from '../components/auth/GoogleLoginButton';
 import DecryptedText from '../components/animations/DecryptedText';
 import PixelTransition from '../components/animations/PixelTransition';
 import { Compass, TrendingUp, Sparkles, Code, Target, ArrowRight } from 'lucide-react';
@@ -47,11 +46,13 @@ export default function Landing() {
             </h1>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12">
-              <GoogleLoginButton 
-                onSuccess={() => navigate('/auth')} 
-                text="Get Started" 
-                className="text-base font-medium px-6 py-3 rounded-full bg-[#202124] text-white hover:bg-[#3c4043] hover:shadow-none shadow-none transition-all flex items-center justify-center"
-              />
+              <button 
+                onClick={() => navigate('/auth')}
+                className="text-base font-medium px-6 py-3 rounded-full bg-[#202124] text-white hover:bg-[#3c4043] shadow-none transition-all flex items-center justify-center space-x-2"
+              >
+                <span>Get Started</span>
+                <ArrowRight size={18} />
+              </button>
               <button 
                 onClick={() => document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' })}
                 className="text-base font-medium px-6 py-3 rounded-full bg-[#f1f3f4] text-[#202124] hover:bg-[#e8eaed] transition-all border border-gray-200"
@@ -267,11 +268,13 @@ export default function Landing() {
             <p className="text-xl text-gray-500 mb-10">
               Join thousands of developers who are leveling up their skills and improving open source projects around the world.
             </p>
-            <GoogleLoginButton 
-              onSuccess={() => navigate('/auth')} 
-              text="Get Started Now" 
-              className="text-lg px-10 py-4 shadow-lg hover:shadow-xl transition-all mx-auto"
-            />
+            <button 
+              onClick={() => navigate('/auth')}
+              className="text-lg font-bold px-10 py-4 rounded-full bg-google-blue text-white shadow-lg hover:shadow-xl hover:bg-blue-600 transition-all mx-auto flex items-center justify-center space-x-2"
+            >
+              <span>Get Started Now</span>
+              <ArrowRight size={20} />
+            </button>
           </div>
         </section>
       </main>
