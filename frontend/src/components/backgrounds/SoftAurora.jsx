@@ -187,7 +187,15 @@ export default function SoftAurora({
   useEffect(() => {
     if (!containerRef.current) return;
     const container = containerRef.current;
-    const renderer = new Renderer({ alpha: true, premultipliedAlpha: false });
+    
+    let renderer;
+    try {
+      renderer = new Renderer({ alpha: true, premultipliedAlpha: false });
+    } catch (e) {
+      console.error("SoftAurora WebGL init failed", e);
+      return;
+    }
+    
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
 
@@ -208,13 +216,20 @@ export default function SoftAurora({
     }
 
     function resize() {
-      renderer.setSize(container.offsetWidth, container.offsetHeight);
+      if (!container) return;
+      const w = container.offsetWidth || 1;
+      const h = container.offsetHeight || 1;
+      renderer.setSize(w, h);
       if (program) {
-        program.uniforms.uResolution.value = [gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height];
+        program.uniforms.uResolution.value = [w, h, w / h];
       }
     }
     window.addEventListener('resize', resize);
-    resize();
+    
+    // Initial size setup before program creation
+    const initialW = container.offsetWidth || 1;
+    const initialH = container.offsetHeight || 1;
+    renderer.setSize(initialW, initialH);
 
     const geometry = new Triangle(gl);
     program = new Program(gl, {
@@ -222,7 +237,7 @@ export default function SoftAurora({
       fragment: fragmentShader,
       uniforms: {
         uTime: { value: 0 },
-        uResolution: { value: [gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height] },
+        uResolution: { value: [initialW, initialH, initialW / initialH] },
         uSpeed: { value: speed },
         uScale: { value: scale },
         uBrightness: { value: brightness },
@@ -277,10 +292,13 @@ export default function SoftAurora({
         gl.canvas.removeEventListener('mousemove', handleMouseMove);
         gl.canvas.removeEventListener('mouseleave', handleMouseLeave);
       }
-      container.removeChild(gl.canvas);
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      if (container.contains(gl.canvas)) {
+        container.removeChild(gl.canvas);
+      }
+      const ext = gl.getExtension('WEBGL_lose_context');
+      if (ext) ext.loseContext();
     };
   }, [speed, scale, brightness, color1, color2, noiseFrequency, noiseAmplitude, bandHeight, bandSpread, octaveDecay, layerOffset, colorSpeed, enableMouseInteraction, mouseInfluence, lightMode]);
 
-  return <div ref={containerRef} className="w-full h-full" />;
+  return <div ref={containerRef} className="w-full h-full min-h-[10px]" />;
 }
