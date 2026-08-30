@@ -6,13 +6,18 @@ import GoogleLoginButton from '../components/auth/GoogleLoginButton';
 import GitHubConnectButton from '../components/auth/GitHubConnectButton';
 import LanguageSelector from '../components/auth/LanguageSelector';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 
 export default function Auth() {
   const navigate = useNavigate();
+  const { login, user } = useAuth();
   const [step, setStep] = useState(1);
   const [githubData, setGithubData] = useState(null);
 
-  const handleGoogleSuccess = () => {
+  const handleGoogleSuccess = (data) => {
+    if (data && data.access_token) {
+      login(data.access_token);
+    }
     setStep(2);
   };
 
