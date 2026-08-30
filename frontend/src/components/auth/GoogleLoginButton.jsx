@@ -1,20 +1,17 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useGoogleLogin } from '@react-oauth/google';
 import api from '../../config/api';
 
 export default function GoogleLoginButton({ onSuccess, text = "Sign in with Google", className = "" }) {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleLogin = async () => {
+  const handleGoogleSuccess = async (tokenResponse) => {
     try {
-      // NOTE: Full Google OAuth flow requires @react-oauth/google and a real Client ID.
-      // For now we exchange a test token — replace `mock_google_id_token` with the
-      // real credential string from the GoogleOAuth2 provider once Client ID is configured.
-      const idToken = 'mock_google_id_token';
-
-      const response = await api.post('/auth/google', { token: idToken });
+      // Send the real access_token from Google to our backend
+      const response = await api.post('/auth/google', { token: tokenResponse.access_token });
       const { access_token, user } = response.data;
 
       // Persist token via AuthContext
@@ -30,9 +27,14 @@ export default function GoogleLoginButton({ onSuccess, text = "Sign in with Goog
     }
   };
 
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: () => alert('Google Login Failed')
+  });
+
   return (
     <button
-      onClick={handleLogin}
+      onClick={() => loginWithGoogle()}
       className={`flex items-center justify-center space-x-3 bg-white text-gray-700 font-medium py-2 px-4 rounded-full border border-gray-300 hover:bg-gray-50 transition-colors focus:ring-2 focus:ring-offset-1 focus:ring-google-blue ${className}`}
     >
       <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
