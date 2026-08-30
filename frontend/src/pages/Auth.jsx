@@ -17,15 +17,19 @@ export default function Auth() {
   const [step, setStep] = useState(token ? 2 : 1);
   const [githubData, setGithubData] = useState(null);
 
+  const codeProcessed = React.useRef(false);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     
-    if (code) {
-      // We returned from GitHub!
-      setStep(3); 
-      // Clean up the URL
+    if (code && !codeProcessed.current) {
+      codeProcessed.current = true;
+      // Clean up the URL FIRST to prevent refresh loops
       window.history.replaceState({}, document.title, '/auth');
+      
+      // Show the analyzing animation
+      setStep(3); 
       
       api.post('/auth/github/connect', { code })
         .then(response => {
@@ -39,7 +43,7 @@ export default function Auth() {
         })
         .catch(error => {
           console.error(error);
-          alert('Failed to connect GitHub');
+          alert('Failed to connect GitHub. Please try again.');
           setStep(2);
         });
     }

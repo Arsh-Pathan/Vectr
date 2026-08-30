@@ -96,28 +96,49 @@ async def connect_github(
     # Ingest profile stats
     gh_stats = await GitHubService.get_developer_github_stats(gh_username, gh_token)
 
-    # Run Profile Agent
-    profile_agent = ProfileAgent()
-    analysis = profile_agent.analyze_profile(
-        username=gh_username,
-        repos_count=gh_stats["repos_count"],
-        commits_count=gh_stats["commits_count"],
-        languages=gh_stats["languages"],
-        contrib_days=gh_stats["contrib_days"],
-        pr_issues_count=gh_stats["pr_issues_count"],
-        account_age_days=gh_stats["account_age_days"],
-        sample_repos=gh_stats.get("sample_repos", []),
-    )
+    # Run Profile Agent (with graceful fallback if Gemini is unavailable)
+    try:
+        profile_agent = ProfileAgent()
+        analysis = profile_agent.analyze_profile(
+            username=gh_username,
+            repos_count=gh_stats["repos_count"],
+            commits_count=gh_stats["commits_count"],
+            languages=gh_stats["languages"],
+            contrib_days=gh_stats["contrib_days"],
+            pr_issues_count=gh_stats["pr_issues_count"],
+            account_age_days=gh_stats["account_age_days"],
+            sample_repos=gh_stats.get("sample_repos", []),
+        )
+        calculated_points = analysis.calculated_points
+        level = analysis.level
+        tier = analysis.tier
+        language_breakdown = [
+            {"language": lp.language, "proficiency": lp.proficiency}
+            for lp in analysis.language_breakdown
+        ]
+        summary = analysis.summary
+    except Exception as e:
+        import logging
+        logging.warning(f"Profile Agent failed (Gemini may be rate-limited): {e}. Using smart fallback.")
+        # Smart mathematical fallback based on real GitHub stats
+        repos = gh_stats["repos_count"]
+        commits = gh_stats["commits_count"]
+        calculated_points = min(repos * 10 + commits * 2, 9999)
+        level = min(max(int(calculated_points / 100), 1), 100)
+        tier = "beginner" if level < 20 else "intermediate" if level < 50 else "advanced" if level < 80 else "expert"
+        langs = gh_stats.get("languages", [])
+        language_breakdown = [
+            {"language": lang, "proficiency": "intermediate"} for lang in (langs[:5] if langs else ["Python"])
+        ]
+        summary = f"GitHub developer with {repos} repos and {commits} commits."
 
     # Update user
     current_user.github_username = gh_username
     current_user.github_token = gh_token
-    current_user.points = analysis.calculated_points
-    current_user.level = analysis.level
-    current_user.tier = analysis.tier
-    current_user.preferred_languages = json.dumps(
-        [{"language": lp.language, "proficiency": lp.proficiency} for lp in analysis.language_breakdown]
-    )
+    current_user.points = calculated_points
+    current_user.level = level
+    current_user.tier = tier
+    current_user.preferred_languages = json.dumps(language_breakdown)
 
     db.commit()
     db.refresh(current_user)
@@ -125,13 +146,11 @@ async def connect_github(
     return {
         "github_username": current_user.github_username,
         "profile_analysis": {
-            "points": analysis.calculated_points,
-            "level": analysis.level,
-            "tier": analysis.tier,
-            "top_languages": [
-                {"language": lp.language, "proficiency": lp.proficiency} for lp in analysis.language_breakdown
-            ],
-            "summary": analysis.summary,
+            "points": calculated_points,
+            "level": level,
+            "tier": tier,
+            "top_languages": language_breakdown,
+            "summary": summary,
         },
         "user": {
             "id": current_user.id,
