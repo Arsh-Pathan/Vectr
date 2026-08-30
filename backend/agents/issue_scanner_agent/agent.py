@@ -1,6 +1,7 @@
 import os
 import sys
-from typing import List, Optional
+import httpx
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
@@ -21,29 +22,53 @@ from google import genai
 from google.genai import types
 
 
+def fetch_issue_comments(repo_full_name: str, issue_number: int) -> str:
+    """ADK Tool: Fetches discussion comment thread for a GitHub issue to judge real complexity."""
+    url = f"https://api.github.com/repos/{repo_full_name}/issues/{issue_number}/comments?per_page=5"
+    headers = {"Accept": "application/vnd.github+json", "User-Agent": "Vectr-Platform/1.0"}
+    try:
+        resp = httpx.get(url, headers=headers, timeout=5.0)
+        if resp.status_code == 200:
+            comments = resp.json()
+            formatted = [f"Comment by @{c['user']['login']}: {c['body'][:200]}" for c in comments]
+            return "\n".join(formatted) if formatted else "No discussion comments found."
+    except Exception as e:
+        return f"Could not fetch comments: {str(e)}"
+    return "No comments available."
+
+
 class IssueAnalysisResult(BaseModel):
     """Structured output for open-source GitHub issue categorization."""
+    issue_id: Optional[int] = Field(default=None, description="GitHub issue ID or number")
     difficulty: str = Field(description="Difficulty tier: beginner, moderate, or advanced")
     difficulty_score: int = Field(description="Numeric difficulty rating from 1 (trivial) to 100 (expert-level architectural change)")
     required_skills: List[str] = Field(description="Programming languages, frameworks, and libraries required")
     summary: str = Field(description="Clear, 1-2 sentence summary of what the issue actually asks for")
     estimated_time: str = Field(description="Realistic estimated resolution time (e.g. '30-60 mins', '2-4 hours')")
     key_concepts: List[str] = Field(description="Core concepts needed to understand the issue")
-    suggested_prerequisites: List[str] = Field(description="Prerequisite knowledge or setup needed")
+    matched_signals: List[str] = Field(default_factory=list, description="Auditable technical signals detected in issue body or comments")
+    confidence: float = Field(default=0.9, description="Confidence score between 0.0 and 1.0")
+    reasoning: str = Field(default="", description="Auditable step-by-step reasoning explaining why this difficulty score was assigned")
+
+
+class BatchIssueAnalysisResult(BaseModel):
+    """Batched structured output for multiple GitHub issues in a single LLM call."""
+    issues: List[IssueAnalysisResult] = Field(description="Array of categorized issues")
 
 
 # ADK root_agent exposed for ADK Web UI / Runner
 root_agent = Agent(
     name="issue_scanner_agent",
-    description="Scans GitHub repositories and categorizes open issues by difficulty, skills, and complexity",
+    description="Scans GitHub repositories and categorizes open issues by difficulty, skills, and complexity with tool execution",
     model=GEMINI_MODEL,
-    instruction="You are the Issue Scanner Agent for Vectr. Accurately categorize GitHub issues by difficulty (beginner/moderate/advanced), difficulty_score (1-100), required skills, and estimated time.",
+    instruction="You are the Issue Scanner Agent for Vectr. Accurately categorize GitHub issues by difficulty (beginner/moderate/advanced), difficulty_score (1-100), required skills, and provide auditable reasoning signals.",
     output_schema=IssueAnalysisResult,
+    tools=[fetch_issue_comments],
 )
 
 
 class IssueScannerAgent:
-    """Agent 2: Google ADK Issue Scanner Agent."""
+    """Agent 2: Google ADK Issue Scanner Agent with Batched Categorization & Auditable Reasoning."""
 
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         self.api_key = api_key or GEMINI_API_KEY
@@ -58,10 +83,15 @@ class IssueScannerAgent:
         issue_body: str,
         labels: Optional[List[str]] = None,
         languages_in_repo: Optional[List[str]] = None,
+        issue_number: Optional[int] = None,
     ) -> IssueAnalysisResult:
-        """Scan and categorize an open source issue."""
+        """Scan and categorize a single open source issue with auditable signals."""
         labels_str = ", ".join(labels) if labels else "None"
         repo_langs = ", ".join(languages_in_repo) if languages_in_repo else "Unknown"
+
+        comments_ctx = ""
+        if issue_number and "/" in repo_name:
+            comments_ctx = f"\n- Discussion Thread Comments:\n{fetch_issue_comments(repo_name, issue_number)}"
 
         prompt = f"""
 Analyze this GitHub issue from repository '{repo_name}':
@@ -71,13 +101,14 @@ Analyze this GitHub issue from repository '{repo_name}':
 - Issue Labels: {labels_str}
 - Issue Body:
 {issue_body[:3000]}
+{comments_ctx}
 
 Categorization Guidelines:
 - 'beginner': Good first issues, typos, docs, small bug fixes, adding tests, difficulty_score 1-25.
 - 'moderate': Feature extensions, refactoring, API integrations, multi-file changes, difficulty_score 26-65.
 - 'advanced': Core architectural redesign, concurrency/memory bugs, major performance optimization, compiler/parser internals, difficulty_score 66-100.
 
-Return the JSON matching the required schema.
+Return structured JSON with difficulty, score, required_skills, matched_signals, confidence, and step-by-step reasoning.
 """
 
         response = self.client.models.generate_content(
@@ -90,3 +121,46 @@ Return the JSON matching the required schema.
             ),
         )
         return response.parsed
+
+    def scan_issue_batch(
+        self,
+        repo_name: str,
+        issues_list: List[Dict[str, Any]],
+        languages_in_repo: Optional[List[str]] = None,
+    ) -> List[IssueAnalysisResult]:
+        """Batched categorization: scans up to 20 candidate issues in a SINGLE Gemini API call."""
+        if not issues_list:
+            return []
+
+        repo_langs = ", ".join(languages_in_repo) if languages_in_repo else "Unknown"
+        
+        formatted_issues = []
+        for i, iss in enumerate(issues_list, 1):
+            iss_id = iss.get("id") or iss.get("number") or i
+            title = iss.get("title", "")
+            body = (iss.get("body") or "")[:500]
+            labels = ", ".join([lbl.get("name", "") if isinstance(lbl, dict) else str(lbl) for lbl in iss.get("labels", [])])
+            formatted_issues.append(f"Issue #{iss_id} - Title: {title}\nLabels: {labels}\nBody: {body}\n")
+
+        batch_prompt = f"""
+Analyze and categorize the following candidate GitHub issues from repository '{repo_name}' (Languages: {repo_langs}):
+
+{"---".join(formatted_issues)}
+
+Instructions:
+Categorize each issue in the list according to difficulty (beginner/moderate/advanced), score (1-100), required_skills, matched_signals, confidence, and reasoning.
+Return a single JSON object containing an array of categorized issues matching BatchIssueAnalysisResult schema.
+"""
+
+        response = self.client.models.generate_content(
+            model=self.adk_agent.model,
+            contents=batch_prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=BatchIssueAnalysisResult,
+                system_instruction=self.adk_agent.instruction,
+            ),
+        )
+        
+        batch_result: BatchIssueAnalysisResult = response.parsed
+        return batch_result.issues
