@@ -4,10 +4,15 @@ import Navbar from '../components/layout/Navbar';
 import DecryptedText from '../components/animations/DecryptedText';
 import PixelTransition from '../components/animations/PixelTransition';
 import { Compass, TrendingUp, Sparkles, Code, Target, ArrowRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Landing() {
   const navigate = useNavigate();
+  const { token } = useAuth();
 
+  const handleGetStarted = () => {
+    navigate(token ? '/dashboard' : '/auth');
+  };
   return (
     <div className="min-h-screen bg-primary-bg flex flex-col font-sans">
       <Navbar />
@@ -50,7 +55,7 @@ export default function Landing() {
                 
                 <div className="flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-4 mt-12">
                   <button 
-                    onClick={() => navigate('/auth')}
+                    onClick={handleGetStarted}
                     className="text-base font-medium px-6 py-3 rounded-full bg-[#202124] text-white hover:bg-[#3c4043] shadow-none transition-all flex items-center justify-center space-x-2"
                   >
                     <span>Get Started</span>
@@ -283,7 +288,7 @@ export default function Landing() {
               Join thousands of developers who are leveling up their skills and improving open source projects around the world.
             </p>
             <button 
-              onClick={() => navigate('/auth')}
+              onClick={handleGetStarted}
               className="text-lg font-bold px-10 py-4 rounded-full bg-google-blue text-white shadow-lg hover:shadow-xl hover:bg-blue-600 transition-all mx-auto flex items-center justify-center space-x-2"
             >
               <span>Get Started Now</span>
