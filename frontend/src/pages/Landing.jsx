@@ -305,9 +305,11 @@ export default function Landing() {
             {/* Column 1: Brand & Description */}
             <div className="lg:col-span-2">
               <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 bg-google-blue rounded flex items-center justify-center">
-                  <span className="text-white font-bold text-lg leading-none">V</span>
-                </div>
+                <img 
+                  src="/logo.png" 
+                  alt="Vectr Logo" 
+                  className="w-10 h-10 object-contain"
+                />
                 <span className="text-white font-bold text-2xl tracking-tight">Vectr</span>
               </div>
               <p className="text-sm text-gray-400 leading-relaxed max-w-sm mb-6">
