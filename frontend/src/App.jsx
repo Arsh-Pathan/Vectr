@@ -5,6 +5,7 @@ import Landing from './pages/Landing';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import Settings from './pages/Settings';
 import Issues from './pages/Issues';
 import IssueDetail from './pages/IssueDetail';
 import OrgRegister from './pages/OrgRegister';
@@ -19,6 +20,7 @@ function App() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/issues" element={<ProtectedRoute><Issues /></ProtectedRoute>} />
           <Route path="/issue/:id" element={<ProtectedRoute><IssueDetail /></ProtectedRoute>} />
           <Route path="/org" element={<ProtectedRoute><OrgRegister /></ProtectedRoute>} />
