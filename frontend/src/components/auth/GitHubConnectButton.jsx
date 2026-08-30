@@ -10,7 +10,7 @@ export default function GitHubConnectButton({ className = "" }) {
       return;
     }
     const redirectUri = window.location.origin + '/auth';
-    const githubUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=repo`;
+    const githubUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:org,user,repo`;
     window.location.href = githubUrl;
   };
 

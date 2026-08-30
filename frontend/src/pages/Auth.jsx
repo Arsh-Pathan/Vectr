@@ -8,6 +8,7 @@ import LanguageSelector from '../components/auth/LanguageSelector';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import api from '../config/api';
+import toast from 'react-hot-toast';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ export default function Auth() {
         })
         .catch(error => {
           console.error(error);
-          alert('Failed to connect GitHub. Please try again.');
+          toast.error('Failed to connect GitHub. Please try again.');
           setStep(2);
         });
     }
@@ -66,11 +67,15 @@ export default function Auth() {
     }, 4000);
   };
 
-  const handleLanguageSubmit = (languages) => {
-    console.log('Submitted languages:', languages);
-    // Simulate API call to save preferences
-    // api.post('/developer/preferences', { languages })
-    setStep(5);
+  const handleLanguageSubmit = async (languages) => {
+    try {
+      await api.post('/developer/preferences', { languages });
+      toast.success('Preferences saved successfully!');
+      setStep(5);
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      toast.error('Failed to save preferences.');
+    }
   };
 
   useEffect(() => {

@@ -5,6 +5,7 @@ import Modal from '../common/Modal';
 import DifficultyBadge from './DifficultyBadge';
 import { ExternalLink, CheckCircle } from 'lucide-react';
 import api from '../../config/api';
+import toast from 'react-hot-toast';
 
 export default function IssueInfo({ issue }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -20,10 +21,11 @@ export default function IssueInfo({ issue }) {
       const res = await api.post(`/issues/${issue.id}/complete`, { pr_url: prUrl });
       setCompletionResult(res.data);
       setIsModalOpen(false);
+      toast.success('Issue marked as complete!');
     } catch (error) {
       const detail = error.response?.data?.detail || error.message;
       console.error('Failed to submit PR:', detail);
-      alert(`Submission failed: ${detail}`);
+      toast.error(`Submission failed: ${detail}`);
     } finally {
       setIsSubmitting(false);
     }

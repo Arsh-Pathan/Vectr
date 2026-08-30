@@ -1,5 +1,6 @@
 import json
 import logging
+from urllib.parse import urlparse
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from pydantic import BaseModel
@@ -59,8 +60,10 @@ async def register_organization(
     db.commit()
     db.refresh(org)
 
-    # Extract org name from URL (e.g. "https://github.com/freeCodeCamp" -> "freeCodeCamp")
-    org_gh_name = request.github_org_url.rstrip("/").split("/")[-1]
+    # Extract org name from URL (e.g. "https://github.com/freeCodeCamp/repos" -> "freeCodeCamp")
+    parsed_url = urlparse(request.github_org_url)
+    path_parts = parsed_url.path.strip("/").split("/")
+    org_gh_name = path_parts[0] if path_parts else request.name
 
     # Trigger background issue scanning
     background_tasks.add_task(_background_ingest, org_gh_name)
@@ -149,7 +152,9 @@ async def get_user_organizations(
     db: Session = Depends(get_db),
 ):
     """Fetch GitHub organizations accessible via user's GitHub OAuth token (Zero PAT required)."""
-    token = current_user.github_token or "mock_gh_token_demo"
+    token = current_user.github_token
+    if not token:
+        raise HTTPException(status_code=401, detail="GitHub account not connected")
     orgs = await GitHubService.fetch_user_orgs(token)
     return {
         "organizations": orgs,
@@ -164,7 +169,9 @@ async def sync_user_organizations_and_issues(
     db: Session = Depends(get_db),
 ):
     """Fetch user's GitHub orgs/repos via OAuth token, scan issues with IssueScannerAgent, and embed into matching pipeline."""
-    token = current_user.github_token or "mock_gh_token_demo"
+    token = current_user.github_token
+    if not token:
+        raise HTTPException(status_code=401, detail="GitHub account not connected")
     orgs = await GitHubService.fetch_user_orgs(token)
 
     scanner = IssueScannerAgent()

@@ -27,6 +27,7 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+        - VITE_GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
     container_name: vectr-frontend
     restart: unless-stopped
     # NGINX runs as root initially to bind port 80, but worker drops to lower priv.

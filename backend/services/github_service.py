@@ -1,4 +1,5 @@
 import httpx
+import logging
 from typing import Dict, Any, List, Optional
 from config import GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
 
@@ -10,8 +11,7 @@ class GitHubService:
     async def exchange_code_for_token(code: str) -> Optional[str]:
         """Exchange OAuth authorization code for GitHub access token."""
         if not GITHUB_CLIENT_ID or not GITHUB_CLIENT_SECRET:
-            # In mock dev mode, return dummy token if no credentials set
-            return f"mock_gh_token_{code[:8]}"
+            raise ValueError("GITHUB_CLIENT_ID or GITHUB_CLIENT_SECRET is missing in environment.")
 
         url = "https://github.com/login/oauth/access_token"
         headers = {"Accept": "application/json"}
@@ -31,15 +31,6 @@ class GitHubService:
     @staticmethod
     async def fetch_user_profile(token: str) -> Dict[str, Any]:
         """Fetch user profile information from GitHub."""
-        if token.startswith("mock_gh_token"):
-            return {
-                "login": "arshpathan",
-                "name": "Arsh Pathan",
-                "bio": "Open Source Builder & Full-Stack Developer",
-                "public_repos": 28,
-                "created_at": "2023-01-15T00:00:00Z",
-                "avatar_url": "https://avatars.githubusercontent.com/u/1?v=4",
-            }
 
         headers = {
             "Authorization": f"Bearer {token}",
@@ -55,13 +46,6 @@ class GitHubService:
     @staticmethod
     async def fetch_user_repositories(username: str, token: Optional[str] = None) -> List[Dict[str, Any]]:
         """Fetch public repositories and detect languages (No PAT needed for public repos)."""
-        if token and token.startswith("mock_gh_token"):
-            return [
-                {"name": "fastapi-demo", "language": "Python", "stargazers_count": 12},
-                {"name": "react-flow", "language": "TypeScript", "stargazers_count": 5},
-                {"name": "vectr-core", "language": "Python", "stargazers_count": 20},
-                {"name": "docs-site", "language": "HTML", "stargazers_count": 2},
-            ]
 
         headers = {
             "Accept": "application/vnd.github+json",
@@ -70,15 +54,18 @@ class GitHubService:
         if token and not token.startswith("mock_"):
             headers["Authorization"] = f"Bearer {token}"
 
-        url = f"https://api.github.com/users/{username}/repos?per_page=50&sort=updated"
+        url = f"https://api.github.com/users/{username}/repos?per_page=100&sort=updated"
         try:
             async with httpx.AsyncClient() as client:
                 resp = await client.get(url, headers=headers, timeout=10.0)
                 if resp.status_code == 200:
                     return resp.json()
-        except Exception:
-            pass
-        return []
+                elif resp.status_code == 403:
+                    logging.error(f"GitHub API rate limit exceeded when fetching repos for {username}")
+                    raise Exception("GitHub API rate limit exceeded")
+        except Exception as e:
+            logging.error(f"Failed to fetch repositories for {username}: {e}")
+            raise
 
     @staticmethod
     async def fetch_repo_issues(repo_full_name: str, limit: int = 10) -> List[Dict[str, Any]]:
@@ -96,28 +83,16 @@ class GitHubService:
                     # Filter out pull requests (GitHub issues API includes PRs with a 'pull_request' key)
                     issues = [i for i in raw_issues if "pull_request" not in i]
                     return issues
-        except Exception:
-            pass
-        return []
+                elif resp.status_code == 403:
+                    logging.error(f"GitHub API rate limit exceeded when fetching issues for {repo_full_name}")
+                    raise Exception("GitHub API rate limit exceeded")
+        except Exception as e:
+            logging.error(f"Failed to fetch issues for {repo_full_name}: {e}")
+            raise
 
     @staticmethod
     async def fetch_user_orgs(token: str) -> List[Dict[str, Any]]:
         """Fetch GitHub organizations for the authenticated user using their OAuth access token (Zero PAT required)."""
-        if token and token.startswith("mock_gh_token"):
-            return [
-                {
-                    "login": "freeCodeCamp",
-                    "id": 9892522,
-                    "avatar_url": "https://avatars.githubusercontent.com/u/9892522?v=4",
-                    "description": "Learn to code for free and contribute to open source.",
-                },
-                {
-                    "login": "EddieHubCommunity",
-                    "id": 66385736,
-                    "avatar_url": "https://avatars.githubusercontent.com/u/66385736?v=4",
-                    "description": "Open source community focused on welcoming first-time contributors.",
-                },
-            ]
 
         headers = {
             "Accept": "application/vnd.github+json",
@@ -131,18 +106,16 @@ class GitHubService:
                 resp = await client.get("https://api.github.com/user/orgs", headers=headers, timeout=10.0)
                 if resp.status_code == 200:
                     return resp.json()
-        except Exception:
-            pass
-        return []
+                elif resp.status_code == 403:
+                    logging.error("GitHub API rate limit exceeded when fetching user orgs")
+                    raise Exception("GitHub API rate limit exceeded")
+        except Exception as e:
+            logging.error(f"Failed to fetch user orgs: {e}")
+            raise
 
     @staticmethod
-    async def fetch_org_repositories(org_name: str, token: Optional[str] = None, limit: int = 10) -> List[Dict[str, Any]]:
+    async def fetch_org_repositories(org_name: str, token: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
         """Fetch public repositories for an Organization using OAuth token if present (Zero PAT required)."""
-        if token and token.startswith("mock_gh_token"):
-            return [
-                {"name": "freeCodeCamp", "full_name": "freeCodeCamp/freeCodeCamp", "language": "JavaScript", "stargazers_count": 390000},
-                {"name": "BioDrop", "full_name": "EddieHubCommunity/BioDrop", "language": "JavaScript", "stargazers_count": 4500},
-            ]
 
         url = f"https://api.github.com/orgs/{org_name}/repos?type=public&per_page={limit}&sort=updated"
         headers = {
@@ -157,9 +130,12 @@ class GitHubService:
                 resp = await client.get(url, headers=headers, timeout=10.0)
                 if resp.status_code == 200:
                     return resp.json()
-        except Exception:
-            pass
-        return []
+                elif resp.status_code == 403:
+                    logging.error(f"GitHub API rate limit exceeded when fetching org repos for {org_name}")
+                    raise Exception("GitHub API rate limit exceeded")
+        except Exception as e:
+            logging.error(f"Failed to fetch org repos for {org_name}: {e}")
+            raise
 
     @classmethod
     async def get_developer_github_stats(cls, username: str, token: Optional[str] = None) -> Dict[str, Any]:

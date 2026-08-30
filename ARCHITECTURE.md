@@ -1,4 +1,5 @@
-# Vectr — System Architecture
+
+    # Vectr — System Architecture
 
 > Complete technical architecture for the Vectr platform.
 

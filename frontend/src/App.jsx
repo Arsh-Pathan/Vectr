@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import Landing from './pages/Landing';
@@ -14,6 +15,7 @@ import DailyChallenge from './pages/DailyChallenge';
 function App() {
   return (
     <AuthProvider>
+      <Toaster position="bottom-right" />
       <Router>
         <Routes>
           <Route path="/" element={<Landing />} />

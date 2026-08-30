@@ -26,7 +26,7 @@ async def google_auth(request: GoogleAuthRequest, db: Session = Depends(get_db))
     """Exchange Google ID token for Vectr JWT access token."""
     token_str = request.token
 
-    if token_str == "mock_google_id_token" or token_str.startswith("mock_"):
+    if token_str == "mock_google_id_token":
         google_id = "demo_123"
         email = "demo@vectr.ai"
         name = "Demo Developer"
@@ -164,3 +164,18 @@ async def connect_github(
             "tier": current_user.tier,
         },
     }
+
+
+@router.delete("/account")
+async def delete_account(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Delete the current user's account."""
+    try:
+        db.delete(current_user)
+        db.commit()
+        return {"message": "Account successfully deleted."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to delete account.")

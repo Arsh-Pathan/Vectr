@@ -1,16 +1,24 @@
 import React, { useState } from 'react';
 import Button from '../common/Button';
 
-const AVAILABLE_LANGUAGES = ['JavaScript', 'Python', 'TypeScript', 'Java', 'Go', 'Rust', 'C++', 'Ruby'];
+const POPULAR_LANGUAGES = ['JavaScript', 'Python', 'TypeScript', 'Java', 'Go', 'Rust', 'C++', 'Ruby'];
+const ALL_LANGUAGES = [
+  'JavaScript', 'Python', 'TypeScript', 'Java', 'Go', 'Rust', 'C++', 'C', 'C#',
+  'Ruby', 'Swift', 'Kotlin', 'PHP', 'HTML', 'CSS', 'Dart', 'Shell', 'Bash',
+  'SQL', 'R', 'Objective-C', 'Scala', 'Elixir', 'Haskell', 'Lua', 'Perl',
+  'Assembly', 'Vue', 'React', 'Angular', 'Svelte', 'Solidity', 'GraphQL'
+];
 const PROFICIENCY_LEVELS = ['beginner', 'intermediate', 'advanced'];
 
 export default function LanguageSelector({ onSubmit }) {
   const [selections, setSelections] = useState([]);
+  const [searchInput, setSearchInput] = useState('');
   
   const handleAddLanguage = (lang) => {
-    if (!selections.find(s => s.language === lang)) {
+    if (lang && !selections.find(s => s.language.toLowerCase() === lang.toLowerCase())) {
       setSelections([...selections, { language: lang, proficiency: 'beginner' }]);
     }
+    setSearchInput('');
   };
 
   const handleRemoveLanguage = (lang) => {
@@ -28,18 +36,44 @@ export default function LanguageSelector({ onSubmit }) {
     }
   };
 
+  const handleSearchAdd = (e) => {
+    e.preventDefault();
+    if (searchInput.trim()) {
+      handleAddLanguage(searchInput.trim());
+    }
+  };
+
   return (
     <div className="w-full max-w-md mx-auto">
       <h3 className="text-xl font-bold mb-4 text-center">Select Your Languages</h3>
       
+      <div className="mb-4">
+        <form onSubmit={handleSearchAdd} className="flex gap-2">
+          <input
+            type="text"
+            list="language-list"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search or add custom language..."
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-google-blue focus:border-google-blue outline-none"
+          />
+          <datalist id="language-list">
+            {ALL_LANGUAGES.map(lang => (
+              <option key={lang} value={lang} />
+            ))}
+          </datalist>
+          <Button type="submit" variant="secondary" className="px-4">Add</Button>
+        </form>
+      </div>
+
       <div className="flex flex-wrap gap-2 mb-6 justify-center">
-        {AVAILABLE_LANGUAGES.map(lang => (
+        {POPULAR_LANGUAGES.map(lang => (
           <button
             key={lang}
             onClick={() => handleAddLanguage(lang)}
-            disabled={selections.find(s => s.language === lang)}
+            disabled={selections.find(s => s.language.toLowerCase() === lang.toLowerCase())}
             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
-              selections.find(s => s.language === lang)
+              selections.find(s => s.language.toLowerCase() === lang.toLowerCase())
                 ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
                 : 'bg-white text-gray-700 border-gray-300 hover:border-google-blue hover:text-google-blue'
             }`}
@@ -52,7 +86,7 @@ export default function LanguageSelector({ onSubmit }) {
       <form onSubmit={handleSubmit} className="space-y-4">
         {selections.map((sel) => (
           <div key={sel.language} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200">
-            <span className="font-medium text-gray-700 w-24">{sel.language}</span>
+            <span className="font-medium text-gray-700 w-24 truncate" title={sel.language}>{sel.language}</span>
             <select
               value={sel.proficiency}
               onChange={(e) => handleProficiencyChange(sel.language, e.target.value)}
