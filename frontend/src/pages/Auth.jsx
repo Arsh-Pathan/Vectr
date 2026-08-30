@@ -11,8 +11,10 @@ import api from '../config/api';
 
 export default function Auth() {
   const navigate = useNavigate();
-  const { login, user } = useAuth();
-  const [step, setStep] = useState(1);
+  const { login, user, token } = useAuth();
+  
+  // If we already have a token, skip Google Auth (Step 1) and go straight to GitHub Connect (Step 2)
+  const [step, setStep] = useState(token ? 2 : 1);
   const [githubData, setGithubData] = useState(null);
 
   useEffect(() => {
